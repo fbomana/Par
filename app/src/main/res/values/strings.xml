@@ -13,4 +13,5 @@
     <string name="activityCycling">Cycling</string>
     <string name="activityRunning">Running</string>
     <string name="activityWalking">Walking</string>
+    <string name="accuracy">accuracy</string>
 </resources>

@@ -14,4 +14,5 @@
     <string name="activityCycling">Bicicleta</string>
     <string name="activityRunning">Correr</string>
     <string name="activityWalking">Camninar</string>
+    <string name="accuracy">Precisión</string>
 </resources>

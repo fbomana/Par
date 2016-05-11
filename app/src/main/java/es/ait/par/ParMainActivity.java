@@ -302,31 +302,27 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     public void onLocationChanged(Location location)
     {
         long partialTime = System.currentTimeMillis() - lastTime;
-        if ( status == STATUS_RECORDING )
+        if ( status == STATUS_RECORDING  )
         {
-            if ( lastLocation != null )
+            ((TextView) findViewById( R.id.accuracyValue )).setText( "" + location.getAccuracy() );
+            if ( location.getAccuracy() < 10 )
             {
-                double speed = 0;
-                double partialDistance = lastLocation.distanceTo( location );
-                distance += partialDistance;
-                time += partialTime;
-                if ( location.hasSpeed() )
+                if (lastLocation != null)
                 {
-                    speed = location.getSpeed();
-                }
-                else
-                {
-                    speed = partialDistance / ( partialTime / 1000 );
+                    double speed = 0;
+                    double partialDistance = lastLocation.distanceTo(location);
+                    distance += partialDistance;
+                    time += partialTime;
+                    speed = partialDistance / (partialTime / 1000);
+
+                    calories += selectedActivity.calories(speed * 3.6, weight, partialTime / 1000);
+                    updateGUIValues(speed);
                 }
 
-                calories += selectedActivity.calories( speed * 3.6, weight, partialTime / 1000 );
-                updateGUIValues( speed );
+                lastLocation = location;
+                lastTime = partialTime;
             }
-
-            lastLocation = location;
-            lastTime = partialTime;
         }
-
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
