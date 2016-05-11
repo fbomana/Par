@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name" translatable="false">Par</string>
+    <string name="distance">Distance</string>
+    <string name="speed">Speed</string>
+    <string name="avgspeed">Average Speed</string>
+    <string name="time">Time</string>
+    <string name="calories">Calories</string>
+    <string name="startButton">Start</string>
+    <string name="pauseButton">Pause</string>
+    <string name="resumeButton">resume</string>
+    <string name="stopButton">Stop</string>
+    <string name="activityEmpty">Choose an activity</string>
+    <string name="activityCycling">Cycling</string>
+    <string name="activityRunning">Running</string>
+    <string name="activityWalking">Walking</string>
 </resources>

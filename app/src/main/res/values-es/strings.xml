@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Par</string>
+    <string name="avgspeed">Velocidad Media</string>
+    <string name="calories">Calorias</string>
+    <string name="distance">Distancia</string>
+    <string name="pauseButton">Pausa</string>
+    <string name="resumeButton">Reanudar</string>
+    <string name="speed">Velocidad</string>
+    <string name="startButton">Comenzar</string>
+    <string name="stopButton">Parar</string>
+    <string name="time">Tiempo</string>
+    <string name="activityEmpty">Elige una actividad</string>
+    <string name="activityCycling">Bicicleta</string>
+    <string name="activityRunning">Correr</string>
+    <string name="activityWalking">Camninar</string>
+</resources>

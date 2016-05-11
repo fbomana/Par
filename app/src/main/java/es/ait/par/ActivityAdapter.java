@@ -44,7 +44,7 @@ public class ActivityAdapter extends ArrayAdapter
         ImageView image = (ImageView)row.findViewById(R.id.activityRowImage );
         image.setImageDrawable( getImage( activity ));
         TextView text = (TextView)row.findViewById(R.id.activityRowText );
-        text.setText( activity.getName());
+        text.setText( row.getResources().getString( activity.getId()));
         return row;
     }
 

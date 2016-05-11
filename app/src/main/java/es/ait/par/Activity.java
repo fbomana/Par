@@ -7,6 +7,7 @@ package es.ait.par;
  */
 public class Activity
 {
+    private int id;
     private String icon;
     private String name;
 
@@ -14,13 +15,16 @@ public class Activity
     private double metSpeed[];
     private double met[];
 
-    public Activity ( String name, String icon, double metSpeed[], double met[] )
+    public Activity ( int id, String name, String icon, double metSpeed[], double met[] )
     {
+        this.id = id;
         this.name = name;
         this.icon = icon;
         this.metSpeed = metSpeed;
         this.met = met;
     }
+
+    public int getId() { return id; }
 
     public String getIcon()
     {

@@ -32,7 +32,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary"
-            android:text="Distancia"
+            android:text="@string/distance"
             android:id="@+id/distanceText"/>
 
         <TextView
@@ -60,7 +60,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary"
-            android:text="Speed"
+            android:text="@string/speed"
             android:id="@+id/speedText"/>
 
         <TextView
@@ -86,7 +86,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary"
-            android:text="Average Speed"
+            android:text="@string/avgspeed"
             android:id="@+id/averageSpeedText"/>
 
         <TextView
@@ -112,7 +112,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary"
-            android:text="Time"
+            android:text="@string/time"
             android:id="@+id/timeText"/>
 
         <TextView
@@ -138,7 +138,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary"
-            android:text="Calories"
+            android:text="@string/calories"
             android:id="@+id/caloriesText"/>
 
         <TextView
@@ -152,7 +152,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start"
+        android:text="@string/startButton"
         android:id="@+id/startButton"
         grid:layout_row="4"
         grid:layout_column="0"
@@ -162,7 +162,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pause"
+        android:text="@string/pauseButton"
         android:id="@+id/pauseButton"
         grid:layout_row="4"
         grid:layout_column="1"
@@ -172,7 +172,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Stop"
+        android:text="@string/stopButton"
         android:id="@+id/stopButton"
         grid:layout_row="4"
         grid:layout_column="2"
