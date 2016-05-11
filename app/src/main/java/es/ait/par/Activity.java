@@ -1,11 +1,13 @@
 package es.ait.par;
 
+import java.io.Serializable;
+
 /**
  * Class to englobe the activities supported by the application.
  *
  * Created by aitkiar on 6/05/16.
  */
-public class Activity
+public class Activity implements Serializable
 {
     private int id;
     private String icon;
