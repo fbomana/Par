@@ -1,0 +1,8 @@
+Calorías:
+  http://www.realfitness.es/calculadoras/aprende-utilizar-tablas-met-calcular-calorias-quemadas/ 
+  
+Coordenadas Polares y distancia:
+  https://es.wikipedia.org/wiki/F%C3%B3rmula_del_Haversine
+
+Android location services:
+  http://developer.android.com/intl/es/training/location/index.html
