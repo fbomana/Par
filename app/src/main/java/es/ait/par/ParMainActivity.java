@@ -301,7 +301,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     @Override
     public void onLocationChanged(Location location)
     {
-        long partialTime = System.currentTimeMillis() - lastTime;
+        long partialTime = ( System.currentTimeMillis() - lastTime ) / 1000;
         if ( status == STATUS_RECORDING  )
         {
             ((TextView) findViewById( R.id.accuracyValue )).setText( "" + location.getAccuracy() );
@@ -313,9 +313,9 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
                     double partialDistance = lastLocation.distanceTo(location);
                     distance += partialDistance;
                     time += partialTime;
-                    speed = partialDistance / (partialTime / 1000);
+                    speed = partialDistance / partialTime;
 
-                    calories += selectedActivity.calories(speed * 3.6, weight, partialTime / 1000);
+                    calories += selectedActivity.calories(speed * 3.6, weight, partialTime );
                     updateGUIValues(speed);
                 }
 
@@ -369,9 +369,9 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     {
         ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( distance / 1000 ));
         ((TextView) findViewById( R.id.speedValue )).setText( speedAndDistanceFormat.format( speed * 3.6 ));
-        ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( ( distance / ( time / 1000 )) * 3.6 ));
-        ((TextView) findViewById( R.id.distanceValue )).setText( twoDigitsFormat.format( time / 3600000d ) + ":" + twoDigitsFormat.format((time % 3600000d)/ 60000 ));
-        ((TextView) findViewById( R.id.distanceValue )).setText( caloriesFormat.format( calories ));
+        ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( distance / ( time / 1000 )) * 3.6 ));
+        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( time / 3600 ) + ":" + twoDigitsFormat.format((time % 3600 )/ 60 ));
+        ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( calories ));
     }
 
     /**

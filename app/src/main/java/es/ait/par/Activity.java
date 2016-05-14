@@ -97,6 +97,6 @@ public class Activity implements Serializable
             }
         }
 
-        return bestMet * weight * seconds / 60;
+        return bestMet * weight * 0.0175 * seconds / 60;
     }
 }
