@@ -1,43 +1,32 @@
 package es.ait.par;
 
+import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.location.Location;
-import android.net.Uri;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import java.text.DecimalFormat;
 
 
 public class ParMainActivity extends AppCompatActivity implements   AdapterView.OnItemSelectedListener,
                                                                     View.OnClickListener,
-                                                                    GoogleApiClient.ConnectionCallbacks,
-                                                                    GoogleApiClient.OnConnectionFailedListener,
                                                                     LocationListener
 {
+
+    private final String LOGCAT_TAG="PAR";
+
     // Constants
     private final String SAVE_SELECTED_ACTIVITY = "SAVE_SELECTED_ACTIVITY";
     private final String SAVE_STATUS = "SAVE_STATUS";
@@ -49,7 +38,8 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     private final int STATUS_PAUSE = 5;
 
     private int GPS_INTERVAL = 5000;
-    private int GPS_FASTEST_INTERVAL = 5000;
+    private int GPS_MINIMUN_DISTANCE = 3;
+    private int ACCURACY_LIMIT = 10;
 
     private int REQUEST_CHECK_SETTINGS = 1;
 
@@ -60,8 +50,8 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     private Button stopButton;
 
     //Geolocation:
-    private GoogleApiClient googleServicesClient;
-    private LocationRequest request;
+    private LocationManager locationManager;
+    private boolean canRecord = false;
 
 
     // Data
@@ -119,16 +109,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         this.activitiesSprinner.setOnItemSelectedListener(this);
 
 
-        if (googleServicesClient == null)
-        {
-            // ATTENTION: This "addApi(AppIndex.API)"was auto-generated to implement the App Indexing API.
-            // See https://g.co/AppIndexing/AndroidStudio for more information.
-            googleServicesClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .addApi(AppIndex.API).build();
-        }
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
     }
 
     /**
@@ -179,12 +160,26 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     //
 
     // Spinner
+
+    /**
+     * Tests if the selected activity it's different than the empty activity
+     *
+     * @param paramAdapterView
+     * @param paramView
+     * @param position
+     * @param id
+     */
     public void onItemSelected (AdapterView<?> paramAdapterView, View paramView, int position, long id )
     {
         if ( position != 0 )
         {
             startButton.setEnabled( true );
             startButton.setClickable( true );
+        }
+        else
+        {
+            startButton.setEnabled( false );
+            startButton.setClickable( false );
         }
         selectedActivity = activities[position];
     }
@@ -203,7 +198,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
             {
                 resetValues();
                 status = STATUS_WAITING_FOR_SERVICES_CONNECTION;
-                googleServicesClient.connect();
+                startRecording();
                 break;
             }
             case R.id.stopButton:
@@ -215,16 +210,15 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
             {
                 if ( status == STATUS_RECORDING )
                 {
-                    status = STATUS_PAUSE;
-                    (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.resumeButton ));
+                    clickPauseButton();
                 }
                 else
                 {
-                    status = STATUS_RECORDING;
-                    (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.pauseButton ));
-                    resetDeltas();
+                    if ( canRecord )
+                    {
+                        clickResumeButton();
+                    }
                 }
-
                 break;
             }
         }
@@ -238,90 +232,74 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     // Location Apis
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle)
-    {
-        status = STATUS_CHECKING_LOCATION_SERVICES;
-        request = new LocationRequest();
-        request.setPriority( LocationRequest.PRIORITY_HIGH_ACCURACY );
-        request.setInterval( GPS_INTERVAL );
-        request.setFastestInterval( GPS_FASTEST_INTERVAL );
-
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest( request );
-        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings( googleServicesClient, builder.build());
-
-        result.setResultCallback( new ResultCallback<LocationSettingsResult>() {
-
-            @Override
-            public void onResult(LocationSettingsResult result)
-            {
-                final Status requestStatus = result.getStatus();
-                switch (requestStatus.getStatusCode())
-                {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                    {
-                        startRecording();
-                        break;
-                    }
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                    {
-                        // Ask the user for location preferences change in order to proceed.
-                        try
-                        {
-                            requestStatus.startResolutionForResult(ParMainActivity.this, REQUEST_CHECK_SETTINGS);
-                        }
-                        catch (IntentSender.SendIntentException e)
-                        {
-                            status = STATUS_NOT_RECORDING;
-                        }
-                        break;
-                    }
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                    {
-                        status = STATUS_NOT_RECORDING;
-                        break;
-                    }
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onConnectionSuspended(int i)
-    {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult)
-    {
-        status = STATUS_NOT_RECORDING;
-    }
 
     @Override
     public void onLocationChanged(Location location)
     {
-        long partialTime = System.currentTimeMillis() - lastTime;
+        Log.d(LOGCAT_TAG, "New location notification");
+        long actualTime = System.currentTimeMillis();
+        long partialTime = (  actualTime - lastTime ) / 1000;
         if ( status == STATUS_RECORDING  )
         {
             ((TextView) findViewById( R.id.accuracyValue )).setText( "" + location.getAccuracy() );
-            if ( location.getAccuracy() < 10 )
+            if ( location.getAccuracy() < ACCURACY_LIMIT )
             {
+                Log.d( LOGCAT_TAG, "Location Accuracy < 10m");
+                Log.d( LOGCAT_TAG, "Partial time:" + partialTime );
                 if (lastLocation != null)
                 {
                     double speed = 0;
                     double partialDistance = lastLocation.distanceTo(location);
-                    distance += partialDistance;
-                    time += partialTime;
-                    speed = partialDistance / (partialTime / 1000);
+                    if ( partialDistance > ACCURACY_LIMIT / 2 )
+                    {
+                        Log.d(LOGCAT_TAG, "Location Partial distance:" + partialDistance);
+                        Log.d(LOGCAT_TAG, "Acummulated distance:" + distance);
+                        distance += partialDistance;
+                        time += partialTime;
+                        speed = partialDistance / partialTime;
 
-                    calories += selectedActivity.calories(speed * 3.6, weight, partialTime / 1000);
-                    updateGUIValues(speed);
+                        calories += selectedActivity.calories(speed * 3.6, weight, partialTime);
+                        updateGUIValues(speed);
+                        lastLocation = location;
+                        lastTime = actualTime;
+                    }
                 }
-
-                lastLocation = location;
-                lastTime = partialTime;
+                else
+                {
+                    lastLocation = location;
+                    lastTime = actualTime;
+                }
             }
+        }
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras)
+    {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider)
+    {
+        if ( provider.equals( LocationManager.GPS_PROVIDER ) )
+        {
+            canRecord = true;
+        }
+    }
+
+    @Override
+    public void onProviderDisabled(String provider)
+    {
+        if ( provider.equals( LocationManager.GPS_PROVIDER ) )
+        {
+            if ( status == STATUS_RECORDING )
+            {
+                clickPauseButton();
+            }
+
+            Toast.makeText(this, getString( R.string.gpsDisabledToast ), Toast.LENGTH_LONG).show();
+            canRecord = false;
         }
     }
 
@@ -334,7 +312,14 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
      */
     private void startRecording()
     {
-        LocationServices.FusedLocationApi.requestLocationUpdates( googleServicesClient, request, this);
+        if ( locationManager == null || !locationManager.isProviderEnabled( LocationManager.PASSIVE_PROVIDER ))
+        {
+            Toast.makeText(this, getString( R.string.gpsDisabledToast ), Toast.LENGTH_LONG).show();
+            return;
+        }
+        resetValues();
+        locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, GPS_INTERVAL, GPS_MINIMUN_DISTANCE, this);
+        canRecord = true;
         status = STATUS_RECORDING;
         activitiesSprinner.setEnabled( false );
 
@@ -350,8 +335,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     private void stopRecording()
     {
-        LocationServices.FusedLocationApi.removeLocationUpdates( googleServicesClient,this);
-        googleServicesClient.disconnect();
+        locationManager.removeUpdates( this );
         status = STATUS_NOT_RECORDING;
         activitiesSprinner.setEnabled( true );
 
@@ -369,9 +353,22 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     {
         ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( distance / 1000 ));
         ((TextView) findViewById( R.id.speedValue )).setText( speedAndDistanceFormat.format( speed * 3.6 ));
-        ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( ( distance / ( time / 1000 )) * 3.6 ));
-        ((TextView) findViewById( R.id.distanceValue )).setText( twoDigitsFormat.format( time / 3600000d ) + ":" + twoDigitsFormat.format((time % 3600000d)/ 60000 ));
-        ((TextView) findViewById( R.id.distanceValue )).setText( caloriesFormat.format( calories ));
+        ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( distance / time ) * 3.6 ));
+        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( time / 3600 ) + ":" + twoDigitsFormat.format((time % 3600)/ 60 ));
+        ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( calories ));
+    }
+
+    private void clickPauseButton()
+    {
+        status = STATUS_PAUSE;
+        (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.resumeButton ));
+    }
+
+    private void clickResumeButton()
+    {
+        status = STATUS_RECORDING;
+        (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.pauseButton ));
+        resetDeltas();
     }
 
     /**
