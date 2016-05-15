@@ -39,7 +39,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     private int GPS_INTERVAL = 5000;
     private int GPS_MINIMUN_DISTANCE = 3;
-    private int ACCURACY_LIMIT = 10;
+    private int ACCURACY_LIMIT = 20;
 
     private int REQUEST_CHECK_SETTINGS = 1;
 
@@ -250,7 +250,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
                 {
                     double speed = 0;
                     double partialDistance = lastLocation.distanceTo(location);
-                    if ( partialDistance > ACCURACY_LIMIT / 2 )
+                    if ( partialDistance > location.getAccuracy()  )
                     {
                         Log.d(LOGCAT_TAG, "Location Partial distance:" + partialDistance);
                         Log.d(LOGCAT_TAG, "Acummulated distance:" + distance);
