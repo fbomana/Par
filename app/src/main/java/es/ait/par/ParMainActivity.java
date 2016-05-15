@@ -48,21 +48,15 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     private final int STATUS_RECORDING = 4;
     private final int STATUS_PAUSE = 5;
 
-    private int GPS_INTERVAL = 5000;
-    private int GPS_FASTEST_INTERVAL = 5000;
+    private final int REQUEST_CHECK_SETTINGS = 1;
 
-    private int REQUEST_CHECK_SETTINGS = 1;
+    private GoogleApiClient googleServicesClient;
 
     // GUI
     private Spinner activitiesSprinner;
     private Button pauseButton;
     private Button startButton;
     private Button stopButton;
-
-    //Geolocation:
-    private GoogleApiClient googleServicesClient;
-    private LocationRequest request;
-
 
     // Data
     private int status = STATUS_NOT_RECORDING;
@@ -77,13 +71,6 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     private double weight = 98;
 
     private Activity selectedActivity;
-
-    private Location lastLocation;
-    private long lastTime;
-
-    private long time;
-    private double distance;
-    private double calories;
 
     private DecimalFormat speedAndDistanceFormat = new DecimalFormat("###.##");
     private DecimalFormat caloriesFormat = new DecimalFormat("######");
@@ -117,18 +104,6 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         this.activitiesSprinner = ((Spinner) findViewById(R.id.activitySelector));
         this.activitiesSprinner.setAdapter(new ActivityAdapter(this, R.layout.activity_row_layout, this.activities));
         this.activitiesSprinner.setOnItemSelectedListener(this);
-
-
-        if (googleServicesClient == null)
-        {
-            // ATTENTION: This "addApi(AppIndex.API)"was auto-generated to implement the App Indexing API.
-            // See https://g.co/AppIndexing/AndroidStudio for more information.
-            googleServicesClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .addApi(AppIndex.API).build();
-        }
     }
 
     /**
@@ -152,27 +127,6 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         selectedActivity = ( Activity ) savedInstanceState.getSerializable( SAVE_SELECTED_ACTIVITY );
     }
 
-    /**
-     * Method to chect the calbacks returned from another activity. It checks for:
-     * - Request the user to turn on GPS.
-     * @param requestCode
-     * @param resultCode
-     * @param data
-     */
-    protected void onActivityResult (int requestCode, int resultCode, Intent data)
-    {
-        if ( requestCode == REQUEST_CHECK_SETTINGS )
-        {
-            if ( resultCode == android.app.Activity.RESULT_OK )
-            {
-                startRecording();
-            }
-            else
-            {
-                status = STATUS_NOT_RECORDING;
-            }
-        }
-    }
 
     //
     // Listeners //////////////////////////////////////////////////////////////////////////////////////
@@ -375,23 +329,66 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     }
 
     /**
-     * Resets all recorded totals and prepare everything for a new recording.
+     * Method to chect the calbacks returned from another activity. It checks for:
+     * - Request the user to turn on GPS.
+     * @param requestCode
+     * @param resultCode
+     * @param data
      */
-    private void resetValues()
+    protected void onActivityResult (int requestCode, int resultCode, Intent data)
     {
-        distance = 0;
-        time = 0;
-        calories = 0;
-        resetDeltas();
+        if ( requestCode == REQUEST_CHECK_SETTINGS )
+        {
+            if ( resultCode == android.app.Activity.RESULT_OK )
+            {
+                startRecording();
+            }
+            else
+            {
+
+            }
+        }
     }
 
-    /**
-     * resets partial location and time positions for tracking deltas.
-     */
-    private void resetDeltas()
+    private void checkGPS()
     {
-        lastLocation = null;
-        lastTime = 0;
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest( request );
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings( googleServicesClient, builder.build());
+
+        result.setResultCallback( new ResultCallback<LocationSettingsResult>() {
+
+            @Override
+            public void onResult(LocationSettingsResult result)
+            {
+                final Status requestStatus = result.getStatus();
+                switch (requestStatus.getStatusCode())
+                {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                    {
+                        startRecording();
+                        break;
+                    }
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                    {
+                        // Ask the user for location preferences change in order to proceed.
+                        try
+                        {
+                            requestStatus.startResolutionForResult( ParMainActivity.this, REQUEST_CHECK_SETTINGS );
+                        }
+                        catch (IntentSender.SendIntentException e)
+                        {
+                        }
+                        break;
+                    }
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                    {
+
+                        break;
+                    }
+                }
+            }
+        });
     }
 
 }
