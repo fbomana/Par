@@ -1,6 +1,7 @@
 package es.ait.par;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.widget.Toast;
 
 import android.location.LocationListener;
@@ -16,27 +18,27 @@ import android.location.LocationManager;
 /**
  * Created by aitkiar on 14/05/16.
  */
-public class RecordingDaemon extends Service implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
+public class RecordingDaemon extends Service implements LocationListener
 {
     public static final String ACTION_START = "ACTION_START";
     public static final String ACTION_STOP = "ACTION_STOP";
     public static final String ACTION_PAUSE = "ACTION_PAUSE";
     public static final String ACTION_RESUME = "ACTION_RESUME";
 
-    private int GPS_INTERVAL = 5000;
-    private int GPS_MINIMUN_DISTANCE = 3;
-    private int ACCURACY_LIMIT = 20;
+    private final int GPS_INTERVAL = 5000;
+    private final int GPS_MINIMUN_DISTANCE = 3;
+    private final int ACCURACY_LIMIT = 20;
 
-
+    private final String LOGCAT_TAG="[PAR]";
     LocationManager locationManager = null;
     
     
     private long lastTime;
     private Location lastLocation = null;
-    private boolean paused;
+    private boolean gpsDisabled = false;
     private RecordedData data = RecordedData.getInstance();
     private Activity activity;
-    private double weight;
+    private double weight = 98;
     private int accuracy;
 
     /**
@@ -50,17 +52,22 @@ public class RecordingDaemon extends Service implements LocationListener, Google
     @Override
     public int onStartCommand( Intent intent, int flags, int startId )
     {
-        if ( locationmanager == null )
+        Log.d( LOGCAT_TAG, "OnStartCommand. Action: " + intent.getAction());
+        if ( locationManager == null )
         {
-            (LocationManager) this.getSystemService( Context.LOCATION_SERVICE );
+            Log.d( LOGCAT_TAG, "Null locationManager. Getting new one");
+            locationManager = (LocationManager) this.getSystemService( Context.LOCATION_SERVICE );
         }
         switch ( intent.getAction() )
         {
             case ACTION_START:
             {
-                if ( locationManager == null )
+                data.reset();
+                if ( locationManager != null )
                 {
+                    Log.d( LOGCAT_TAG, "Requesting location updates");
                     locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, GPS_INTERVAL, GPS_MINIMUN_DISTANCE, this);
+                    data.setStatus( RecordedData.STATUS_RECORDING );
                 }
                 break;
             }
@@ -68,21 +75,23 @@ public class RecordingDaemon extends Service implements LocationListener, Google
             {
                 if ( locationManager != null )
                 {
+                    Log.d( LOGCAT_TAG, "Requesting end of location updates");
                     locationManager.removeUpdates( this );
                 }
+                data.setStatus( RecordedData.STATUS_NOT_RECORDING );
                 stopSelf();
                 break;
             }
             case ACTION_PAUSE:
             {
-                paused = true;
+                data.setStatus( RecordedData.STATUS_PAUSE );
                 lastLocation = null;
-                lastTime = null;
+                lastTime = 0;
                 break;
             }
             case ACTION_RESUME:
             {
-                paused = false;
+                data.setStatus( RecordedData.STATUS_RECORDING );
                 break;
             }
         }
@@ -105,25 +114,30 @@ public class RecordingDaemon extends Service implements LocationListener, Google
     @Override
     public void onLocationChanged(Location location)
     {
+        Log.d( LOGCAT_TAG, "Location Changed Event recived" );
         long actualTime = System.currentTimeMillis();
         long partialTime = (  actualTime - lastTime ) / 1000;
-        if ( !paused  )
+        if ( data.getStatus() == RecordedData.STATUS_RECORDING && !gpsDisabled )
         {
-            ((TextView) findViewById( R.id.accuracyValue )).setText( "" + location.getAccuracy() );
+            Log.d( LOGCAT_TAG, "\tProcessing Location Changed Event" );
+            data.setActualAccuracy( location.getAccuracy() );
             if ( location.getAccuracy() < ACCURACY_LIMIT )
             {
+                Log.d( LOGCAT_TAG, "\tAccuracy acceptable" );
                 if (lastLocation != null)
                 {
                     double speed = 0;
                     double partialDistance = lastLocation.distanceTo(location);
                     if ( partialDistance > location.getAccuracy()  )
                     {
-                        distance += partialDistance;
-                        time += partialTime;
+                        Log.d( LOGCAT_TAG, "\tSignificant change accepted" );
+                        data.updateDistance( partialDistance );
+                        data.updateTime( partialTime );
                         speed = partialDistance / partialTime;
+                        data.setActualSpeed( speed );
 
-                        calories += selectedActivity.calories(speed * 3.6, weight, partialTime);
-                        updateGUIValues(speed);
+                        data.updateCalories( speed * 3.6, weight, partialTime );
+
                         lastLocation = location;
                         lastTime = actualTime;
                     }
@@ -137,10 +151,29 @@ public class RecordingDaemon extends Service implements LocationListener, Google
         }
     }
 
-    private void startUpdates()
-    {
-        LocationServices.FusedLocationApi.requestLocationUpdates( googleServicesClient, request, this );
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
     }
 
+    @Override
+    public void onProviderEnabled(String provider)
+    {
+        Log.d( LOGCAT_TAG, "Location provider " + provider + " enabled" );
+        if ( provider.equals( LocationManager.GPS_PROVIDER ) )
+        {
+            gpsDisabled = false;
+        }
+    }
 
+    @Override
+    public void onProviderDisabled(String provider)
+    {
+        Log.d( LOGCAT_TAG, "Location provider " + provider + " disabled" );
+        if ( provider.equals( LocationManager.GPS_PROVIDER ) )
+        {
+            gpsDisabled = false;
+            Toast.makeText( this, "GPS disabled", Toast.LENGTH_LONG ).show();
+        }
+    }
 }

@@ -18,20 +18,15 @@ import java.text.DecimalFormat;
 
 
 public class ParMainActivity extends AppCompatActivity implements   AdapterView.OnItemSelectedListener,
-                                                                    View.OnClickListener
+                                                                    View.OnClickListener,
+                                                                    RecordedData.RecordedDataChangeListener
 {
-
-    private final String LOGCAT_TAG="PAR";
 
     // Constants
     private final String SAVE_SELECTED_ACTIVITY = "SAVE_SELECTED_ACTIVITY";
     private final String SAVE_STATUS = "SAVE_STATUS";
 
-    private final int STATUS_NOT_RECORDING = 1;
-    private final int STATUS_WAITING_FOR_SERVICES_CONNECTION = 2;
-    private final int STATUS_CHECKING_LOCATION_SERVICES = 3;
-    private final int STATUS_RECORDING = 4;
-    private final int STATUS_PAUSE = 5;
+    private final String LOGCAT_TAG="[PAR]";
 
 
     private int GPS_INTERVAL = 5000;
@@ -46,7 +41,6 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     private Button stopButton;
 
     // Data
-    private int status = STATUS_NOT_RECORDING;
 
     private Activity[] activities = new Activity[] {
             new Activity( R.string.activityEmpty, "Empty", "empty", null, null ),
@@ -56,6 +50,8 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     };
 
     private double weight = 98;
+
+    private RecordedData data;
 
     private Activity selectedActivity;
 
@@ -68,6 +64,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     //
     public void onCreate(Bundle paramBundle)
     {
+        Log.d( LOGCAT_TAG, "onCreate"  );
         super.onCreate(paramBundle);
 
         setContentView(R.layout.activity_par_main);
@@ -91,6 +88,33 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         this.activitiesSprinner = ((Spinner) findViewById(R.id.activitySelector));
         this.activitiesSprinner.setAdapter(new ActivityAdapter(this, R.layout.activity_row_layout, this.activities));
         this.activitiesSprinner.setOnItemSelectedListener(this);
+
+        data = RecordedData.getInstance();
+        data.addRecordedDataChangeListener( this );
+        if ( data.getActivity() != null )
+        {
+            selectedActivity = data.getActivity();
+            int i = 0;
+            while ( !activities[i].getName().equals( data.getActivity().getName()))
+            {
+                i++;
+            }
+            this.activitiesSprinner.setSelection( i );
+
+        }
+        if ( data.getStatus() != RecordedData.STATUS_NOT_RECORDING )
+        {
+            updateGUIValues();
+            recordingButtonsState();
+            if ( data.getStatus() == RecordedData.STATUS_RECORDING )
+            {
+                (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.pauseButton ));
+            }
+            else if ( data.getStatus() == RecordedData.STATUS_PAUSE )
+            {
+                (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.resumeButton ));
+            }
+        }
     }
 
     /**
@@ -100,8 +124,6 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     @Override
     protected void onSaveInstanceState (Bundle outState)
     {
-        outState.putSerializable( SAVE_SELECTED_ACTIVITY, selectedActivity );
-        outState.putInt( SAVE_STATUS, status );
     }
 
     /**
@@ -131,7 +153,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
      */
     public void onItemSelected (AdapterView<?> paramAdapterView, View paramView, int position, long id )
     {
-        if ( position != 0 )
+        if ( position != 0 && data.getStatus() == RecordedData.STATUS_NOT_RECORDING )
         {
             startButton.setEnabled( true );
             startButton.setClickable( true );
@@ -142,6 +164,11 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
             startButton.setClickable( false );
         }
         selectedActivity = activities[position];
+        if ( data.getStatus() == RecordedData.STATUS_NOT_RECORDING )
+        {
+            data.setActivity( selectedActivity );
+        }
+        Log.d( LOGCAT_TAG, "Activity selected: " + selectedActivity.getName() );
     }
 
 
@@ -156,17 +183,20 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         {
             case R.id.startButton:
             {
+                Log.d( LOGCAT_TAG, "Start Button clicked" );
                 startRecording();
                 break;
             }
             case R.id.stopButton:
             {
+                Log.d( LOGCAT_TAG, "Stop Button clicked" );
                 stopRecording();
                 break;
             }
             case R.id.pauseButton:
             {
-                if ( status == STATUS_RECORDING )
+                Log.d( LOGCAT_TAG, "Pause Button clicked" );
+                if ( data.getStatus() == RecordedData.STATUS_RECORDING )
                 {
                     clickPauseButton();
                 }
@@ -194,9 +224,11 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     private void sendMessageToRecordingService ( String message )
     {
+        Log.d( LOGCAT_TAG, "Sending intent to RecordingDaemon: " + message );
         Intent serviceIntent = new Intent( this, RecordingDaemon.class );
         serviceIntent.setAction( message );
         startService( serviceIntent );
+        Log.d( LOGCAT_TAG, "Message sent" );
     }
 
     /**
@@ -204,28 +236,35 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
      */
     private void startRecording()
     {
-        RecordedData.getInstance().reset();
-        status = STATUS_RECORDING;
+        Log.d( LOGCAT_TAG, "Start Recording" );
+        data.setActivity( selectedActivity );
 
         sendMessageToRecordingService( RecordingDaemon.ACTION_START );
+        recordingButtonsState();
+    }
 
-        RecordedData.getInstance().reset();
+    private void recordingButtonsState()
+    {
+        runOnUiThread( new Runnable() {
+            public void run() {
 
-        activitiesSprinner.setEnabled( false );
+                activitiesSprinner.setEnabled(false);
 
-        startButton.setClickable( false );
-        startButton.setEnabled( false );
+                startButton.setClickable(false);
+                startButton.setEnabled(false);
 
-        pauseButton.setClickable( true );
-        pauseButton.setEnabled( true );
+                pauseButton.setClickable(true);
+                pauseButton.setEnabled(true);
 
-        stopButton.setClickable( true );
-        stopButton.setEnabled( true );
+                stopButton.setClickable(true);
+                stopButton.setEnabled(true);
+            }
+        });
     }
 
     private void stopRecording()
     {
-        status = STATUS_NOT_RECORDING;
+        Log.d( LOGCAT_TAG, "Stop Recording" );
         sendMessageToRecordingService( RecordingDaemon.ACTION_STOP );
         activitiesSprinner.setEnabled( true );
 
@@ -239,28 +278,44 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         stopButton.setEnabled( false );
     }
 
-    private void updateGUIValues( double speed )
+    private void updateGUIValues()
     {
-        ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( RecordedData.getInstance().getDistance() / 1000 ));
-        ((TextView) findViewById( R.id.speedValue )).setText( speedAndDistanceFormat.format( speed * 3.6 ));
-        ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( RecordedData.getInstance().getDistance() / RecordedData.getInstance().getTime() ) * 3.6 ));
-        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( RecordedData.getInstance().getTime() / 3600 ) + ":" + twoDigitsFormat.format((RecordedData.getInstance().getTime() % 3600)/ 60 ));
-        ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( RecordedData.getInstance().getCalories() ));
+        Log.d( LOGCAT_TAG, "Updating GUI" );
+        ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( data.getDistance() / 1000 ));
+        ((TextView) findViewById( R.id.speedValue )).setText( speedAndDistanceFormat.format( data.getActualSpeed() * 3.6 ));
+        if ( data.getTime() > 0 )
+        {
+            ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( data.getDistance() / data.getTime() ) * 3.6 ));
+        }
+        else
+        {
+            ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( 0 ));
+        }
+        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( data.getTime() / 3600 ) + ":" + twoDigitsFormat.format((data.getTime() % 3600)/ 60 ));
+        ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( data.getCalories() ));
+        ((TextView) findViewById( R.id.accuracyValue )).setText( speedAndDistanceFormat.format( data.getActualAccuracy() ));
     }
 
     private void clickPauseButton()
     {
         sendMessageToRecordingService( RecordingDaemon.ACTION_PAUSE );
-        status = STATUS_PAUSE;
         (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.resumeButton ));
     }
 
     private void clickResumeButton()
     {
         sendMessageToRecordingService( RecordingDaemon.ACTION_RESUME );
-        status = STATUS_RECORDING;
         (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.pauseButton ));
 
     }
 
+    @Override
+    public void onDataChanged() {
+        Log.d( LOGCAT_TAG, "Data changed event listenned" );
+        runOnUiThread( new Runnable(){
+            public void run() {
+                updateGUIValues();
+            }
+        });
+    }
 }
