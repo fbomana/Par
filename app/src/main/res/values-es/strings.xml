@@ -15,4 +15,5 @@
     <string name="activityRunning">Correr</string>
     <string name="activityWalking">Camninar</string>
     <string name="accuracy">Precisión</string>
+    <string name="gpsDisabledToast">GPS desactivado. El GPS debe estar activado para poder grabar actividades.</string>
 </resources>

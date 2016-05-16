@@ -1,43 +1,28 @@
 package es.ait.par;
 
+import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
-import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import java.text.DecimalFormat;
 
 
 public class ParMainActivity extends AppCompatActivity implements   AdapterView.OnItemSelectedListener,
-                                                                    View.OnClickListener,
-                                                                    GoogleApiClient.ConnectionCallbacks,
-                                                                    GoogleApiClient.OnConnectionFailedListener,
-                                                                    LocationListener
+                                                                    View.OnClickListener
 {
+
+    private final String LOGCAT_TAG="PAR";
+
     // Constants
     private final String SAVE_SELECTED_ACTIVITY = "SAVE_SELECTED_ACTIVITY";
     private final String SAVE_STATUS = "SAVE_STATUS";
@@ -48,9 +33,11 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     private final int STATUS_RECORDING = 4;
     private final int STATUS_PAUSE = 5;
 
-    private final int REQUEST_CHECK_SETTINGS = 1;
 
-    private GoogleApiClient googleServicesClient;
+    private int GPS_INTERVAL = 5000;
+    private int GPS_MINIMUN_DISTANCE = 3;
+    private int ACCURACY_LIMIT = 20;
+
 
     // GUI
     private Spinner activitiesSprinner;
@@ -133,12 +120,26 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     //
 
     // Spinner
+
+    /**
+     * Tests if the selected activity it's different than the empty activity
+     *
+     * @param paramAdapterView
+     * @param paramView
+     * @param position
+     * @param id
+     */
     public void onItemSelected (AdapterView<?> paramAdapterView, View paramView, int position, long id )
     {
         if ( position != 0 )
         {
             startButton.setEnabled( true );
             startButton.setClickable( true );
+        }
+        else
+        {
+            startButton.setEnabled( false );
+            startButton.setClickable( false );
         }
         selectedActivity = activities[position];
     }
@@ -155,9 +156,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         {
             case R.id.startButton:
             {
-                resetValues();
-                status = STATUS_WAITING_FOR_SERVICES_CONNECTION;
-                googleServicesClient.connect();
+                startRecording();
                 break;
             }
             case R.id.stopButton:
@@ -169,16 +168,12 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
             {
                 if ( status == STATUS_RECORDING )
                 {
-                    status = STATUS_PAUSE;
-                    (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.resumeButton ));
+                    clickPauseButton();
                 }
                 else
                 {
-                    status = STATUS_RECORDING;
-                    (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.pauseButton ));
-                    resetDeltas();
+                    clickResumeButton();
                 }
-
                 break;
             }
         }
@@ -190,106 +185,32 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     }
 
-    // Location Apis
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle)
-    {
-        status = STATUS_CHECKING_LOCATION_SERVICES;
-        request = new LocationRequest();
-        request.setPriority( LocationRequest.PRIORITY_HIGH_ACCURACY );
-        request.setInterval( GPS_INTERVAL );
-        request.setFastestInterval( GPS_FASTEST_INTERVAL );
-
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest( request );
-        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings( googleServicesClient, builder.build());
-
-        result.setResultCallback( new ResultCallback<LocationSettingsResult>() {
-
-            @Override
-            public void onResult(LocationSettingsResult result)
-            {
-                final Status requestStatus = result.getStatus();
-                switch (requestStatus.getStatusCode())
-                {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                    {
-                        startRecording();
-                        break;
-                    }
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                    {
-                        // Ask the user for location preferences change in order to proceed.
-                        try
-                        {
-                            requestStatus.startResolutionForResult(ParMainActivity.this, REQUEST_CHECK_SETTINGS);
-                        }
-                        catch (IntentSender.SendIntentException e)
-                        {
-                            status = STATUS_NOT_RECORDING;
-                        }
-                        break;
-                    }
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                    {
-                        status = STATUS_NOT_RECORDING;
-                        break;
-                    }
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onConnectionSuspended(int i)
-    {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult)
-    {
-        status = STATUS_NOT_RECORDING;
-    }
-
-    @Override
-    public void onLocationChanged(Location location)
-    {
-        long partialTime = ( System.currentTimeMillis() - lastTime ) / 1000;
-        if ( status == STATUS_RECORDING  )
-        {
-            ((TextView) findViewById( R.id.accuracyValue )).setText( "" + location.getAccuracy() );
-            if ( location.getAccuracy() < 10 )
-            {
-                if (lastLocation != null)
-                {
-                    double speed = 0;
-                    double partialDistance = lastLocation.distanceTo(location);
-                    distance += partialDistance;
-                    time += partialTime;
-                    speed = partialDistance / partialTime;
-
-                    calories += selectedActivity.calories(speed * 3.6, weight, partialTime );
-                    updateGUIValues(speed);
-                }
-
-                lastLocation = location;
-                lastTime = partialTime;
-            }
-        }
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Buissnes methods ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    private void sendMessageToRecordingService ( String message )
+    {
+        Intent serviceIntent = new Intent( this, RecordingDaemon.class );
+        serviceIntent.setAction( message );
+        startService( serviceIntent );
+    }
 
     /**
      * Initializes the recording process
      */
     private void startRecording()
     {
-        LocationServices.FusedLocationApi.requestLocationUpdates( googleServicesClient, request, this);
+        RecordedData.getInstance().reset();
         status = STATUS_RECORDING;
+
+        sendMessageToRecordingService( RecordingDaemon.ACTION_START );
+
+        RecordedData.getInstance().reset();
+
         activitiesSprinner.setEnabled( false );
 
         startButton.setClickable( false );
@@ -304,9 +225,8 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     private void stopRecording()
     {
-        LocationServices.FusedLocationApi.removeLocationUpdates( googleServicesClient,this);
-        googleServicesClient.disconnect();
         status = STATUS_NOT_RECORDING;
+        sendMessageToRecordingService( RecordingDaemon.ACTION_STOP );
         activitiesSprinner.setEnabled( true );
 
         startButton.setClickable( true );
@@ -321,74 +241,26 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     private void updateGUIValues( double speed )
     {
-        ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( distance / 1000 ));
+        ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( RecordedData.getInstance().getDistance() / 1000 ));
         ((TextView) findViewById( R.id.speedValue )).setText( speedAndDistanceFormat.format( speed * 3.6 ));
-        ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( distance / ( time / 1000 )) * 3.6 ));
-        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( time / 3600 ) + ":" + twoDigitsFormat.format((time % 3600 )/ 60 ));
-        ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( calories ));
+        ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( RecordedData.getInstance().getDistance() / RecordedData.getInstance().getTime() ) * 3.6 ));
+        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( RecordedData.getInstance().getTime() / 3600 ) + ":" + twoDigitsFormat.format((RecordedData.getInstance().getTime() % 3600)/ 60 ));
+        ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( RecordedData.getInstance().getCalories() ));
     }
 
-    /**
-     * Method to chect the calbacks returned from another activity. It checks for:
-     * - Request the user to turn on GPS.
-     * @param requestCode
-     * @param resultCode
-     * @param data
-     */
-    protected void onActivityResult (int requestCode, int resultCode, Intent data)
+    private void clickPauseButton()
     {
-        if ( requestCode == REQUEST_CHECK_SETTINGS )
-        {
-            if ( resultCode == android.app.Activity.RESULT_OK )
-            {
-                startRecording();
-            }
-            else
-            {
-
-            }
-        }
+        sendMessageToRecordingService( RecordingDaemon.ACTION_PAUSE );
+        status = STATUS_PAUSE;
+        (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.resumeButton ));
     }
 
-    private void checkGPS()
+    private void clickResumeButton()
     {
+        sendMessageToRecordingService( RecordingDaemon.ACTION_RESUME );
+        status = STATUS_RECORDING;
+        (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.pauseButton ));
 
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest( request );
-        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings( googleServicesClient, builder.build());
-
-        result.setResultCallback( new ResultCallback<LocationSettingsResult>() {
-
-            @Override
-            public void onResult(LocationSettingsResult result)
-            {
-                final Status requestStatus = result.getStatus();
-                switch (requestStatus.getStatusCode())
-                {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                    {
-                        startRecording();
-                        break;
-                    }
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                    {
-                        // Ask the user for location preferences change in order to proceed.
-                        try
-                        {
-                            requestStatus.startResolutionForResult( ParMainActivity.this, REQUEST_CHECK_SETTINGS );
-                        }
-                        catch (IntentSender.SendIntentException e)
-                        {
-                        }
-                        break;
-                    }
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                    {
-
-                        break;
-                    }
-                }
-            }
-        });
     }
 
 }

@@ -13,6 +13,8 @@ public class Activity implements Serializable
     private String icon;
     private String name;
 
+    private final double MET_CALORIES_COEFICIENT = 0.0175;
+
     // gets the aproximated Met
     private double metSpeed[];
     private double met[];
@@ -97,6 +99,6 @@ public class Activity implements Serializable
             }
         }
 
-        return bestMet * weight * 0.0175 * seconds / 60;
+        return bestMet * weight * MET_CALORIES_COEFICIENT *  seconds / 60;
     }
 }
