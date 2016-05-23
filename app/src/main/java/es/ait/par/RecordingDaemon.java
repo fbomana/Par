@@ -1,5 +1,7 @@
 package es.ait.par;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -9,11 +11,16 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
 import android.location.LocationListener;
 import android.location.LocationManager;
+
+import java.text.DecimalFormat;
 
 /**
  * Created by aitkiar on 14/05/16.
@@ -24,6 +31,8 @@ public class RecordingDaemon extends Service implements LocationListener
     public static final String ACTION_STOP = "ACTION_STOP";
     public static final String ACTION_PAUSE = "ACTION_PAUSE";
     public static final String ACTION_RESUME = "ACTION_RESUME";
+
+    private static final int NOTIFICATION_ID = 1;
 
     private final int GPS_INTERVAL = 5000;
     private final int GPS_MINIMUN_DISTANCE = 3;
@@ -40,6 +49,9 @@ public class RecordingDaemon extends Service implements LocationListener
     private Activity activity;
     private double weight = 98;
     private int accuracy;
+
+    private DecimalFormat speedAndDistanceFormat = new DecimalFormat("###.##");
+    private DecimalFormat twoDigitsFormat = new DecimalFormat("00");
 
     /**
      * Process the actions sent to the service.
@@ -68,6 +80,7 @@ public class RecordingDaemon extends Service implements LocationListener
                     Log.d( LOGCAT_TAG, "Requesting location updates");
                     locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, GPS_INTERVAL, GPS_MINIMUN_DISTANCE, this);
                     data.setStatus( RecordedData.STATUS_RECORDING );
+                    startForeground( NOTIFICATION_ID, getNotification() );
                 }
                 break;
             }
@@ -79,6 +92,7 @@ public class RecordingDaemon extends Service implements LocationListener
                     locationManager.removeUpdates( this );
                 }
                 data.setStatus( RecordedData.STATUS_NOT_RECORDING );
+                NotificationManagerCompat.from( this ).cancel( NOTIFICATION_ID );
                 stopSelf();
                 break;
             }
@@ -140,6 +154,7 @@ public class RecordingDaemon extends Service implements LocationListener
 
                         lastLocation = location;
                         lastTime = actualTime;
+                        notifyRecording();
                     }
                 }
                 else
@@ -175,5 +190,28 @@ public class RecordingDaemon extends Service implements LocationListener
             gpsDisabled = false;
             Toast.makeText( this, "GPS disabled", Toast.LENGTH_LONG ).show();
         }
+    }
+
+    private void notifyRecording()
+    {
+        NotificationManagerCompat.from( this ).notify( NOTIFICATION_ID, getNotification() );
+    }
+
+    private Notification getNotification()
+    {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder( this );
+        builder.setContentTitle( getString( data.getActivity().getId()));
+        builder.setContentText( getString( R.string.time ) + ":" + twoDigitsFormat.format( data.getTime() / 3600 ) + ":" + twoDigitsFormat.format( data.getTime() % 3600 ) + "   " + getString( R.string.distance ) + ":" + speedAndDistanceFormat.format( data.getDistance()));
+        builder.setSmallIcon(  android.R.drawable.star_on );
+
+        Intent resultIntent = new Intent(this, ParMainActivity.class);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(ParMainActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent( 0, PendingIntent.FLAG_UPDATE_CURRENT );
+        builder.setContentIntent(resultPendingIntent);
+
+        return builder.build();
     }
 }
