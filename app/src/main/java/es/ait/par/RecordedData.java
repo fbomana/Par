@@ -22,6 +22,8 @@ public class RecordedData
 
     private long time;
 
+    private long lastTime;
+
     private List<RecordedDataChangeListener> listeners;
 
     private RecordedData()
@@ -90,6 +92,11 @@ public class RecordedData
     public void setStatus( int status )
     {
         this.status = status;
+        if ( status == STATUS_PAUSE )
+        {
+            nextTime();
+            lastTime = 0;
+        }
     }
 
     public synchronized void updateCalories( double speed, double weight, long partialTime )
@@ -115,6 +122,7 @@ public class RecordedData
         distance = 0;
         time = 0;
         calories = 0;
+        lastTime = 0;
         status = STATUS_NOT_RECORDING;
         fireListeners();
     }
@@ -136,8 +144,22 @@ public class RecordedData
 
     }
 
+    public synchronized void nextTime()
+    {
+        long now = System.currentTimeMillis();
+        if ( lastTime != 0 )
+        {
+            time += ( now - lastTime ) / 1000;
+            fireListeners();
+        }
+        lastTime = now;
+    }
+
     public interface RecordedDataChangeListener {
 
         public void onDataChanged();
     }
+
+
+
 }

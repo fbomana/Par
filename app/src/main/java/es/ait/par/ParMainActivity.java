@@ -291,7 +291,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         {
             ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( 0 ));
         }
-        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( data.getTime() / 3600 ) + ":" + twoDigitsFormat.format((data.getTime() % 3600)/ 60 ));
+        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( data.getTime() / 3600 ) + ":" + twoDigitsFormat.format((data.getTime() % 3600)/ 60 ) + ":" + twoDigitsFormat.format((data.getTime() % 3600)% 60 ));
         ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( data.getCalories() ));
         ((TextView) findViewById( R.id.accuracyValue )).setText( speedAndDistanceFormat.format( data.getActualAccuracy() ));
     }

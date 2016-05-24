@@ -21,6 +21,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 
 import java.text.DecimalFormat;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by aitkiar on 14/05/16.
@@ -53,6 +55,8 @@ public class RecordingDaemon extends Service implements LocationListener
     private DecimalFormat speedAndDistanceFormat = new DecimalFormat("###.##");
     private DecimalFormat twoDigitsFormat = new DecimalFormat("00");
 
+    private Timer timer;
+
     /**
      * Process the actions sent to the service.
      *
@@ -81,6 +85,16 @@ public class RecordingDaemon extends Service implements LocationListener
                     locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, GPS_INTERVAL, GPS_MINIMUN_DISTANCE, this);
                     data.setStatus( RecordedData.STATUS_RECORDING );
                     startForeground( NOTIFICATION_ID, getNotification() );
+
+                    timer = new Timer();
+                    timer.scheduleAtFixedRate( new TimerTask() {
+                            public void run() {
+                                if ( data.getStatus() == RecordedData.STATUS_RECORDING )
+                                {
+                                    data.nextTime();
+                                }
+                            }
+                        }, 0, 1000);
                 }
                 break;
             }
@@ -92,6 +106,7 @@ public class RecordingDaemon extends Service implements LocationListener
                     locationManager.removeUpdates( this );
                 }
                 data.setStatus( RecordedData.STATUS_NOT_RECORDING );
+                timer.cancel();
                 NotificationManagerCompat.from( this ).cancel( NOTIFICATION_ID );
                 stopSelf();
                 break;
@@ -146,7 +161,7 @@ public class RecordingDaemon extends Service implements LocationListener
                     {
                         Log.d( LOGCAT_TAG, "\tSignificant change accepted" );
                         data.updateDistance( partialDistance );
-                        data.updateTime( partialTime );
+                        data.nextTime();
                         speed = partialDistance / partialTime;
                         data.setActualSpeed( speed );
 
@@ -201,7 +216,7 @@ public class RecordingDaemon extends Service implements LocationListener
     {
         NotificationCompat.Builder builder = new NotificationCompat.Builder( this );
         builder.setContentTitle( getString( data.getActivity().getId()));
-        builder.setContentText( getString( R.string.time ) + ":" + twoDigitsFormat.format( data.getTime() / 3600 ) + ":" + twoDigitsFormat.format( data.getTime() % 3600 ) + "   " + getString( R.string.distance ) + ":" + speedAndDistanceFormat.format( data.getDistance()));
+        builder.setContentText( getString( R.string.time ) + ":" + twoDigitsFormat.format( data.getTime() / 3600 ) + ":" + twoDigitsFormat.format( ( data.getTime() % 3600 ) / 60 ) + "." + twoDigitsFormat.format( ( data.getTime() % 3600 ) % 60 )  + "   " + getString( R.string.distance ) + ":" + speedAndDistanceFormat.format( data.getDistance()));
         builder.setSmallIcon(  android.R.drawable.star_on );
 
         Intent resultIntent = new Intent(this, ParMainActivity.class);
