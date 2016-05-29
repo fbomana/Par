@@ -5,11 +5,9 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -36,16 +34,19 @@ public class RecordingDaemon extends Service implements LocationListener
 
     private static final int NOTIFICATION_ID = 1;
 
-    private final int GPS_INTERVAL = 5000;
-    private final int GPS_MINIMUN_DISTANCE = 3;
+    private final int GPS_INTERVAL = 2000;
+    private final int GPS_MINIMUN_DISTANCE = 0;
     private final int ACCURACY_LIMIT = 20;
 
     private final String LOGCAT_TAG="[PAR]";
     LocationManager locationManager = null;
     
-    
-    private long lastTime;
-    private Location lastLocation = null;
+    // Location save.
+    private long bestLocationTime;
+    private Location bestLocation = null;
+    private long lastSavedLocationTime;
+    private Location lastSavedLocation = null;
+
     private boolean gpsDisabled = false;
     private RecordedData data = RecordedData.getInstance();
     private Activity activity;
@@ -89,7 +90,8 @@ public class RecordingDaemon extends Service implements LocationListener
                     timer = new Timer();
                     timer.scheduleAtFixedRate( new TimerTask() {
                             public void run() {
-                                if ( data.getStatus() == RecordedData.STATUS_RECORDING )
+                                // We only count time if we have a location save.
+                                if ( lastSavedLocation != null && data.getStatus() == RecordedData.STATUS_RECORDING )
                                 {
                                     data.nextTime();
                                 }
@@ -113,9 +115,12 @@ public class RecordingDaemon extends Service implements LocationListener
             }
             case ACTION_PAUSE:
             {
+                saveBestLocation();
                 data.setStatus( RecordedData.STATUS_PAUSE );
-                lastLocation = null;
-                lastTime = 0;
+                lastSavedLocation = null;
+                lastSavedLocationTime = 0;
+                bestLocation = null;
+                bestLocationTime = 0;
                 break;
             }
             case ACTION_RESUME:
@@ -144,41 +149,53 @@ public class RecordingDaemon extends Service implements LocationListener
     public void onLocationChanged(Location location)
     {
         Log.d( LOGCAT_TAG, "Location Changed Event recived" );
+        Log.d( LOGCAT_TAG, "["+ location.getProvider() + "] lat:" + location.getLatitude() + " Long: " + location.getLongitude() + " Acc:" + location.getAccuracy());
         long actualTime = System.currentTimeMillis();
-        long partialTime = (  actualTime - lastTime ) / 1000;
-        if ( data.getStatus() == RecordedData.STATUS_RECORDING && !gpsDisabled )
+        if ( bestLocation == null )
         {
-            Log.d( LOGCAT_TAG, "\tProcessing Location Changed Event" );
-            data.setActualAccuracy( location.getAccuracy() );
-            if ( location.getAccuracy() < ACCURACY_LIMIT )
+            Log.d( LOGCAT_TAG, "Best location null" );
+            bestLocation = location;
+            bestLocationTime = actualTime;
+            if ( lastSavedLocation == null )
             {
-                Log.d( LOGCAT_TAG, "\tAccuracy acceptable" );
-                if (lastLocation != null)
-                {
-                    double speed = 0;
-                    double partialDistance = lastLocation.distanceTo(location);
-                    if ( partialDistance > location.getAccuracy()  )
-                    {
-                        Log.d( LOGCAT_TAG, "\tSignificant change accepted" );
-                        data.updateDistance( partialDistance );
-                        data.nextTime();
-                        speed = partialDistance / partialTime;
-                        data.setActualSpeed( speed );
-
-                        data.updateCalories( speed * 3.6, weight, partialTime );
-
-                        lastLocation = location;
-                        lastTime = actualTime;
-                        notifyRecording();
-                    }
-                }
-                else
-                {
-                    lastLocation = location;
-                    lastTime = actualTime;
-                }
+                lastSavedLocationTime = actualTime;
             }
         }
+        else
+        {
+            if ( actualTime - lastSavedLocationTime >= 10000  ||
+                bestLocation.distanceTo( location ) > bestLocation.getAccuracy() + location.getAccuracy()  )
+            {
+                Log.d( LOGCAT_TAG, "Ten secconds or distance trigger" );
+                saveBestLocation();
+                bestLocationTime = actualTime;
+                bestLocation = location;
+            }
+            else if ( location.getAccuracy() < bestLocation.getAccuracy() )
+            {
+                bestLocation = location;
+                bestLocationTime = actualTime;
+            }
+        }
+    }
+
+    private void saveBestLocation()
+    {
+        Log.d( LOGCAT_TAG, "Save best location" );
+        if (lastSavedLocation != null )
+        {
+            Log.d( LOGCAT_TAG, "lastSavedLocation != null " );
+            double partialDistance = lastSavedLocation.distanceTo(bestLocation);
+            long partialTime = (bestLocationTime - lastSavedLocationTime) / 1000;
+            double speed = partialDistance / partialTime;
+            data.updateDistance(partialDistance);
+            data.updateCalories(speed * 3.6, weight, partialTime);
+            data.setActualAccuracy(bestLocation.getAccuracy());
+            data.setActualSpeed(speed);
+            notifyRecording();
+        }
+        lastSavedLocation = bestLocation;
+        lastSavedLocationTime = bestLocationTime;
     }
 
     @Override
