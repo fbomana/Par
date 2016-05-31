@@ -51,6 +51,10 @@ public class RecordedData
         return time;
     }
 
+    public long getTimeSeconds() {
+        return time / 1000;
+    }
+
     public double getCalories()
     {
         return calories;
@@ -111,7 +115,7 @@ public class RecordedData
         fireListeners();
     }
 
-    public synchronized void updateTime( double delta )
+    public synchronized void updateTime( long delta )
     {
         time += delta;
         fireListeners();
@@ -149,7 +153,7 @@ public class RecordedData
         long now = System.currentTimeMillis();
         if ( lastTime != 0 )
         {
-            time += ( now - lastTime ) / 1000;
+            time += now - lastTime;
             fireListeners();
         }
         lastTime = now;

@@ -283,15 +283,15 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         Log.d( LOGCAT_TAG, "Updating GUI" );
         ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( data.getDistance() / 1000 ));
         ((TextView) findViewById( R.id.speedValue )).setText( speedAndDistanceFormat.format( data.getActualSpeed() * 3.6 ));
-        if ( data.getTime() > 0 )
+        if ( data.getTimeSeconds() > 0 )
         {
-            ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( data.getDistance() / data.getTime() ) * 3.6 ));
+            ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( data.getDistance() / data.getTimeSeconds() ) * 3.6 ));
         }
         else
         {
             ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( 0 ));
         }
-        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( data.getTime() / 3600 ) + ":" + twoDigitsFormat.format((data.getTime() % 3600)/ 60 ) + ":" + twoDigitsFormat.format((data.getTime() % 3600)% 60 ));
+        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( data.getTimeSeconds() / 3600 ) + ":" + twoDigitsFormat.format((data.getTimeSeconds() % 3600)/ 60 ) + ":" + twoDigitsFormat.format((data.getTimeSeconds() % 3600)% 60 ));
         ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( data.getCalories() ));
         ((TextView) findViewById( R.id.accuracyValue )).setText( speedAndDistanceFormat.format( data.getActualAccuracy() ));
     }
