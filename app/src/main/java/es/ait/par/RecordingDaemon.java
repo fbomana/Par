@@ -233,7 +233,12 @@ public class RecordingDaemon extends Service implements LocationListener
     {
         NotificationCompat.Builder builder = new NotificationCompat.Builder( this );
         builder.setContentTitle( getString( data.getActivity().getId()));
-        builder.setContentText( getString( R.string.time ) + ":" + twoDigitsFormat.format( data.getTimeSeconds() / 3600 ) + ":" + twoDigitsFormat.format( ( data.getTimeSeconds() % 3600 ) / 60 ) + "." + twoDigitsFormat.format( ( data.getTimeSeconds() % 3600 ) % 60 )  + "   " + getString( R.string.distance ) + ":" + speedAndDistanceFormat.format( data.getDistance()));
+        builder.setContentText( getString( R.string.time ) + ":" +
+            twoDigitsFormat.format( data.getTimeSeconds() / 3600 ) + ":" +
+            twoDigitsFormat.format( ( data.getTimeSeconds() % 3600 ) / 60 )
+            + "." + twoDigitsFormat.format( ( data.getTimeSeconds() % 3600 ) % 60 )  + "   " +
+            getString( R.string.distance ) + ":" + speedAndDistanceFormat.format( data.getDistance() / 1000 ));
+
         builder.setSmallIcon(  android.R.drawable.star_on );
 
         Intent resultIntent = new Intent(this, ParMainActivity.class);
