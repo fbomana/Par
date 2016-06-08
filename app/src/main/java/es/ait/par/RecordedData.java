@@ -144,8 +144,8 @@ public class RecordedData
         for ( int i = 0; i < listeners.size(); i ++ )
         {
             listeners.get(i).onDataChanged();
+            listeners.get(i).onGPSStatusChange( time != 0 );
         }
-
     }
 
     public synchronized void nextTime()
@@ -162,6 +162,8 @@ public class RecordedData
     public interface RecordedDataChangeListener {
 
         public void onDataChanged();
+
+        public void onGPSStatusChange( boolean positionFix );
     }
 
 

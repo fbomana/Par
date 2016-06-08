@@ -2,13 +2,17 @@ package es.ait.par;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.support.v7.widget.AppCompatImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +43,8 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     private Button pauseButton;
     private Button startButton;
     private Button stopButton;
+
+    private AppCompatImageView gpsIcon;
 
     // Data
 
@@ -315,6 +321,38 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         runOnUiThread( new Runnable(){
             public void run() {
                 updateGUIValues();
+            }
+        });
+    }
+
+    public void onGPSStatusChange(final boolean positionFix )
+    {
+        Log.d( LOGCAT_TAG, "GPS Status changed to :" + positionFix );
+        runOnUiThread( new Runnable() {
+            public void run()
+            {
+                if ( positionFix )
+                {
+                    LinearLayout layout = (LinearLayout) findViewById( R.id.notificacionZone );
+                    if ( gpsIcon != null && layout.findViewById( gpsIcon.getId()) != null )
+                    {
+                        layout.removeView( gpsIcon );
+                    }
+                }
+                else
+                {
+                    AnimationDrawable animation = (AnimationDrawable) ContextCompat.getDrawable( ParMainActivity.this, R.drawable.gps );
+                    gpsIcon = new AppCompatImageView(ParMainActivity.this);
+                    gpsIcon.setImageDrawable( animation );
+                    gpsIcon.setScaleType(AppCompatImageView.ScaleType.CENTER);
+
+                    LinearLayout layout = (LinearLayout) findViewById( R.id.notificacionZone );
+                    if ( gpsIcon != null && layout.findViewById( gpsIcon.getId()) == null )
+                    {
+                        layout.addView(gpsIcon);
+                        animation.run();
+                    }
+                }
             }
         });
     }

@@ -175,6 +175,20 @@
             android:id="@+id/accuracyValue"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        grid:layout_row="3"
+        grid:layout_column="0"
+        grid:layout_columnSpan="3"
+        grid:layout_rowWeight="1"
+        android:id="@+id/notificacionZone"
+        android:gravity="center"
+        >
+
+    </LinearLayout>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
