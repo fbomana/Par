@@ -182,17 +182,17 @@
         grid:layout_row="3"
         grid:layout_column="0"
         grid:layout_columnSpan="3"
-        grid:layout_rowWeight="1"
+        grid:layout_gravity="fill"
         android:id="@+id/notificacionZone"
-        android:gravity="center"
-        >
+        android:gravity="center">
+
         <android.support.v7.widget.AppCompatImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:scaleType="centerInside"
+            android:adjustViewBounds="true"
             android:id="@+id/gpsIcon"
             android:src="@drawable/gps"/>
-
     </LinearLayout>
 
     <Button

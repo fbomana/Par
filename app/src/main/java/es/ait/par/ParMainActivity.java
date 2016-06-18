@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.support.v7.widget.AppCompatImageView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -43,8 +44,6 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     private Button pauseButton;
     private Button startButton;
     private Button stopButton;
-
-    private AppCompatImageView gpsIcon;
 
     // Data
 
@@ -120,6 +119,23 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
             {
                 (( Button )findViewById( R.id.pauseButton )).setText( getString( R.string.resumeButton ));
             }
+        }
+
+
+    }
+
+    /**
+     * We need this callback in order to start/stop the animations because they can be set in motion in the
+     * onCreate method.
+     * @param hasFocus
+     */
+    @Override
+    public void onWindowFocusChanged (boolean hasFocus)
+    {
+        super.onWindowFocusChanged( hasFocus );
+        if ( hasFocus )
+        {
+            showHideGPSStatusIcon();
         }
     }
 
@@ -325,35 +341,29 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         });
     }
 
-    public void onGPSStatusChange(final boolean positionFix )
+    public void onStatusChanged()
     {
-        Log.d( LOGCAT_TAG, "GPS Status changed to :" + positionFix );
+        Log.d( LOGCAT_TAG, "GPS Status changed to :" + data.getStatus() );
         runOnUiThread( new Runnable() {
             public void run()
             {
-                if ( positionFix )
-                {
-                    LinearLayout layout = (LinearLayout) findViewById( R.id.notificacionZone );
-                    if ( gpsIcon != null && layout.findViewById( gpsIcon.getId()) != null )
-                    {
-                        layout.removeView( gpsIcon );
-                    }
-                }
-                else
-                {
-                    AnimationDrawable animation = (AnimationDrawable) ContextCompat.getDrawable( ParMainActivity.this, R.drawable.gps );
-                    gpsIcon = new AppCompatImageView(ParMainActivity.this);
-                    gpsIcon.setImageDrawable( animation );
-                    gpsIcon.setScaleType(AppCompatImageView.ScaleType.CENTER);
-
-                    LinearLayout layout = (LinearLayout) findViewById( R.id.notificacionZone );
-                    if ( gpsIcon != null && layout.findViewById( gpsIcon.getId()) == null )
-                    {
-                        layout.addView(gpsIcon);
-                        animation.run();
-                    }
-                }
+                showHideGPSStatusIcon();
             }
         });
+    }
+
+    public void showHideGPSStatusIcon()
+    {
+        AppCompatImageView view = (AppCompatImageView)findViewById(R.id.gpsIcon);
+        if ( data.getStatus() == RecordedData.STATUS_WAITING_FIRST_LOCATION )
+        {
+            view.setVisibility( View.VISIBLE );
+            ((AnimationDrawable)view.getDrawable()).start();
+        }
+        else
+        {
+            ((AnimationDrawable)view.getDrawable()).stop();
+            view.setVisibility( View.INVISIBLE );
+        }
     }
 }

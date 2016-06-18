@@ -84,7 +84,7 @@ public class RecordingDaemon extends Service implements LocationListener
                 {
                     Log.d( LOGCAT_TAG, "Requesting location updates");
                     locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, GPS_INTERVAL, GPS_MINIMUN_DISTANCE, this);
-                    data.setStatus( RecordedData.STATUS_RECORDING );
+                    data.setStatus( RecordedData.STATUS_WAITING_FIRST_LOCATION );
                     startForeground( NOTIFICATION_ID, getNotification() );
 
                     timer = new Timer();
@@ -160,6 +160,7 @@ public class RecordingDaemon extends Service implements LocationListener
             {
                 lastSavedLocationTime = actualTime;
             }
+            data.setStatus( RecordedData.STATUS_RECORDING );
         }
         else
         {

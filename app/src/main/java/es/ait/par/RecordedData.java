@@ -9,6 +9,7 @@ import java.util.List;
 public class RecordedData
 {
     public static final int STATUS_NOT_RECORDING = 1;
+    public static final int STATUS_WAITING_FIRST_LOCATION = 2;
     public static final int STATUS_RECORDING = 4;
     public static final int STATUS_PAUSE = 5;
 
@@ -96,6 +97,7 @@ public class RecordedData
     public void setStatus( int status )
     {
         this.status = status;
+        fireStatusChanged();
         if ( status == STATUS_PAUSE )
         {
             nextTime();
@@ -144,7 +146,14 @@ public class RecordedData
         for ( int i = 0; i < listeners.size(); i ++ )
         {
             listeners.get(i).onDataChanged();
-            listeners.get(i).onGPSStatusChange( time != 0 );
+        }
+    }
+
+    private void fireStatusChanged()
+    {
+        for ( int i = 0; i < listeners.size(); i ++ )
+        {
+            listeners.get(i).onStatusChanged();
         }
     }
 
@@ -163,7 +172,7 @@ public class RecordedData
 
         public void onDataChanged();
 
-        public void onGPSStatusChange( boolean positionFix );
+        public void onStatusChanged();
     }
 
 
