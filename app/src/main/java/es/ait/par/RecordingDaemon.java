@@ -12,15 +12,21 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import android.location.LocationListener;
 import android.location.LocationManager;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import es.ait.par.gpx.GPXRecorder;
 
 /**
  * Created by aitkiar on 14/05/16.
@@ -49,7 +55,6 @@ public class RecordingDaemon extends Service implements LocationListener
 
     private boolean gpsDisabled = false;
     private RecordedData data = RecordedData.getInstance();
-    private Activity activity;
     private double weight = 98;
     private int accuracy;
 
@@ -80,6 +85,15 @@ public class RecordingDaemon extends Service implements LocationListener
             case ACTION_START:
             {
                 data.reset();
+                try
+                {
+                    GPXRecorder.getInstance(data.getActivity()).newTrack();
+                }
+                catch ( Exception e )
+                {
+                    Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
                 if ( locationManager != null )
                 {
                     Log.d( LOGCAT_TAG, "Requesting location updates");
@@ -110,12 +124,40 @@ public class RecordingDaemon extends Service implements LocationListener
                 data.setStatus( RecordedData.STATUS_NOT_RECORDING );
                 timer.cancel();
                 NotificationManagerCompat.from( this ).cancel( NOTIFICATION_ID );
+                File[] directories = ContextCompat.getExternalFilesDirs( this, null );
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH_mm_");
+                for ( int i = directories.length - 1; i <= 0; i -- )
+                {
+                    try
+                    {
+                        new File( directories[i].getAbsolutePath() + "/gpx/" ).mkdirs();
+                        GPXRecorder.getInstance(data.getActivity()).serialize(new File( directories[i].getAbsolutePath() + "/gpx/" + sdf.format( new java.util.Date()) + data.getActivity().getName()));
+                        break;
+                    }
+                    catch ( IOException e )
+                    {
+                        continue;
+                    }
+                    catch ( Exception e )
+                    {
+                        Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                }
                 stopSelf();
                 break;
             }
             case ACTION_PAUSE:
             {
                 saveBestLocation();
+                try
+                {
+                    GPXRecorder.getInstance(data.getActivity()).newTrackSegment();
+                }
+                catch( Exception e )
+                {
+                    Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
                 data.setStatus( RecordedData.STATUS_PAUSE );
                 lastSavedLocation = null;
                 lastSavedLocationTime = 0;
@@ -194,6 +236,14 @@ public class RecordingDaemon extends Service implements LocationListener
             data.setActualAccuracy(bestLocation.getAccuracy());
             data.setActualSpeed(speed);
             notifyRecording();
+        }
+        try
+        {
+            GPXRecorder.getInstance(data.getActivity()).saveLocation(bestLocation);
+        }
+        catch ( Exception e )
+        {
+            Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         lastSavedLocation = bestLocation;
         lastSavedLocationTime = bestLocationTime;
