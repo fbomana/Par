@@ -10,7 +10,7 @@ import org.simpleframework.xml.ElementList;
 
 public class TrksegType {
 
-    @ElementList(name = "trkpt", inline = true, required = false)
+    @ElementList(name = "trkpt", entry="trkpt", inline = true, required = false)
     private List<WptType> trkpt;
     @Element(name = "extensions", required = false)
     private ExtensionsType extensions;

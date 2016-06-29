@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Par</string>
+    <string name="app_name">PAR</string>
     <string name="avgspeed">Velocidad Media</string>
     <string name="calories">Calorias</string>
     <string name="distance">Distancia</string>
@@ -16,4 +16,9 @@
     <string name="activityWalking">Camninar</string>
     <string name="accuracy">Precisión</string>
     <string name="gpsDisabledToast">GPS desactivado. El GPS debe estar activado para poder grabar actividades.</string>
+    <string name="menu_gpx">gpx</string>
+    <string name="title_activity_gpxmanagment">PAR -  Gestion de tracks grabados</string>
+    <string name="menu_gpx_delete">Borrar</string>
+    <string name="menu_gpx_send">Enviar</string>
+    <string name="menu_gpx_view">Ver Track</string>
 </resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/menu_gpx_delete"
+          android:icon="@android:drawable/ic_delete"
+          android:enabled="false"
+          android:title="@string/menu_gpx_delete"
+          app:showAsAction="ifRoom"/>
+    <item android:id="@+id/menu_gpx_open"
+          android:icon="@android:drawable/ic_menu_view"
+          android:enabled="false"
+          android:title="@string/menu_gpx_view"
+          app:showAsAction="ifRoom"/>
+    <item android:id="@+id/menu_gpx_send"
+          android:icon="@android:drawable/ic_menu_send"
+          android:enabled="false"
+          android:title="@string/menu_gpx_send"
+          app:showAsAction="ifRoom"/>
+
+</menu>

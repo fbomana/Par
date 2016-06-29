@@ -15,7 +15,7 @@ public class TrkType {
     private String desc;
     @Element(name = "src", required = false)
     private String src;
-    @ElementList(name = "link", inline = true, required = false)
+    @ElementList(name = "link", entry="link", inline = true, required = false)
     private List<LinkType> link;
     @Element(name = "number", required = false)
     private double number;
@@ -23,7 +23,7 @@ public class TrkType {
     private String type;
     @Element(name = "extensions", required = false)
     private ExtensionsType extensions;
-    @ElementList(name = "trkseg", inline = true, required = false)
+    @ElementList(name = "trkseg", entry="trkseg", inline = true, required = false)
     private List<TrksegType> trkseg;
 
     public String getName() {

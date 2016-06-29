@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Par</string>
+    <string name="app_name" translatable="false">PAR</string>
     <string name="distance">Distance</string>
     <string name="speed">Speed</string>
     <string name="avgspeed">Average Speed</string>
@@ -15,4 +15,9 @@
     <string name="activityWalking">Walking</string>
     <string name="accuracy">accuracy</string>
     <string name="gpsDisabledToast">GPS Disabled. GPS must be enabled in order to record activities.</string>
+    <string name="menu_gpx">gpx</string>
+    <string name="title_activity_gpxmanagment">PAR - Recorded Track Managment</string>
+    <string name="menu_gpx_delete">Delete</string>
+    <string name="menu_gpx_send">Send</string>
+    <string name="menu_gpx_view">View track</string>
 </resources>

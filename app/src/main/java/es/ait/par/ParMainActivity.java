@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -158,10 +160,41 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         selectedActivity = ( Activity ) savedInstanceState.getSerializable( SAVE_SELECTED_ACTIVITY );
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        getMenuInflater().inflate( R.menu.main_activity, menu );
+        return super.onCreateOptionsMenu(menu);
+    }
+
 
     //
     // Listeners //////////////////////////////////////////////////////////////////////////////////////
     //
+
+    // Options Menu
+
+    /**
+     * Calls the diferent activities that can be invoked from the options menu.
+     *
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        super.onOptionsItemSelected(item);
+        switch ( item.getItemId())
+        {
+            case R.id.menu_gpx_files:
+                Intent intent = new Intent( this, GPXManagment.class);
+                startActivity( intent );
+                break;
+        }
+
+        return true;
+    }
+
 
     // Spinner
 

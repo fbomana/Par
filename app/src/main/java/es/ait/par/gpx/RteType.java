@@ -15,7 +15,7 @@ public class RteType {
     private String desc;
     @Element(name = "src", required = false)
     private String src;
-    @ElementList(name = "link", inline = true, required = false)
+    @ElementList(name = "link", entry="link",  inline = true, required = false)
     private List<LinkType> link;
     @Element(name = "number", required = false)
     private double number;
@@ -23,7 +23,7 @@ public class RteType {
     private String type;
     @Element(name = "extensions", required = false)
     private ExtensionsType extensions;
-    @ElementList(name = "rtept", inline = true, required = false)
+    @ElementList(name = "rtept", entry="rtept", inline = true, required = false)
     private List<WptType> rtept;
 
     public String getName() {

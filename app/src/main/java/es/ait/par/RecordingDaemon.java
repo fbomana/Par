@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -91,6 +93,7 @@ public class RecordingDaemon extends Service implements LocationListener
                 }
                 catch ( Exception e )
                 {
+                    Log.d( LOGCAT_TAG, "Error al obtener el GPXRecorder", e );
                     Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_LONG).show();
                 }
 
@@ -124,26 +127,7 @@ public class RecordingDaemon extends Service implements LocationListener
                 data.setStatus( RecordedData.STATUS_NOT_RECORDING );
                 timer.cancel();
                 NotificationManagerCompat.from( this ).cancel( NOTIFICATION_ID );
-                File[] directories = ContextCompat.getExternalFilesDirs( this, null );
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH_mm_");
-                for ( int i = directories.length - 1; i <= 0; i -- )
-                {
-                    try
-                    {
-                        new File( directories[i].getAbsolutePath() + "/gpx/" ).mkdirs();
-                        GPXRecorder.getInstance(data.getActivity()).serialize(new File( directories[i].getAbsolutePath() + "/gpx/" + sdf.format( new java.util.Date()) + data.getActivity().getName()));
-                        break;
-                    }
-                    catch ( IOException e )
-                    {
-                        continue;
-                    }
-                    catch ( Exception e )
-                    {
-                        Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        break;
-                    }
-                }
+                saveTrack();
                 stopSelf();
                 break;
             }
@@ -243,6 +227,7 @@ public class RecordingDaemon extends Service implements LocationListener
         }
         catch ( Exception e )
         {
+            Log.d( LOGCAT_TAG, "Error al obtener el GPXRecorder", e );
             Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         lastSavedLocation = bestLocation;
@@ -301,5 +286,75 @@ public class RecordingDaemon extends Service implements LocationListener
         builder.setContentIntent(resultPendingIntent);
 
         return builder.build();
+    }
+
+    private void saveTrack()
+    {
+        Log.d( LOGCAT_TAG, "Saving track file");
+        File[] directories = ContextCompat.getExternalFilesDirs( this, "GPX" );
+        Log.d(LOGCAT_TAG, "Encontrados " + directories.length + " directorios ");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH_mm_");
+        boolean written = false;
+        for ( int i = directories.length - 1; i >= 0; i -- )
+        {
+            if ( directories[i] != null )
+            {
+                try
+                {
+                    Log.d(LOGCAT_TAG, "Intentando grabar en directorio: " + directories[i].getAbsolutePath());
+                    if ( !directories[i].exists() )
+                    {
+                        directories[i].mkdir();
+                    }
+                    Log.d(LOGCAT_TAG, "\t\t Directorio creado" + directories[i].getAbsolutePath() );
+                    File saveFile = new File(directories[i], sdf.format(new java.util.Date()) + data.getActivity().getName() + ".gpx");
+                    GPXRecorder.getInstance(data.getActivity()).serialize(saveFile);
+                    Log.d(LOGCAT_TAG, "\t\t Fichero salvado: " + saveFile);
+                    written = true;
+                    break;
+                }
+                catch (IOException e)
+                {
+                    Log.e(LOGCAT_TAG, "\t\t Error Al guardar: ", e);
+                    continue;
+                }
+                catch (Exception e)
+                {
+                    Log.e(LOGCAT_TAG, "\t\t Error Al guardar: ", e);
+                    Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    break;
+                }
+            }
+        }
+        if ( !written )
+        {
+            try
+            {
+                File folder = this.getFilesDir();
+
+
+                File gpxFolder = new File( folder.getAbsolutePath(), "GPX");
+                if ( !gpxFolder.mkdir() )
+                {
+                    gpxFolder = folder;
+                }
+
+                Log.d(LOGCAT_TAG, "Intentando grabar en directorio Interno: " + gpxFolder );
+                File saveFile = new File( gpxFolder, sdf.format(new java.util.Date()) + data.getActivity().getName() + ".gpx");
+                GPXRecorder.getInstance(data.getActivity()).serialize(saveFile);
+                Log.d(LOGCAT_TAG, "Saved: " + saveFile );
+            }
+            catch ( Exception e )
+            {
+                Log.d(LOGCAT_TAG, "\t\t Error Al guardar: ", e );
+                Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+            catch ( Throwable e )
+            {
+                Log.e( LOGCAT_TAG, "Error inesperado al grabar", e );
+                throw e;
+            }
+        }
+
     }
 }

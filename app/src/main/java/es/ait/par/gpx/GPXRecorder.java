@@ -6,6 +6,7 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 import es.ait.par.Activity;
@@ -28,6 +29,7 @@ public class GPXRecorder
         gpx.setMetadata( new MetadataType());
         gpx.getMetadata().setTime( new java.util.Date().toString());
         gpx.getMetadata().setDesc( activity.getName() + " " + new java.util.Date().toString());
+        this.activity = activity;
     }
 
     /**
@@ -110,6 +112,12 @@ public class GPXRecorder
     {
         Serializer serializer = new Persister();
         serializer.write(gpx, file);
+    }
+
+    public void serialize( OutputStream stream) throws Exception
+    {
+        Serializer serializer = new Persister();
+        serializer.write(gpx, stream );
     }
 
     private TrkType getLastTrack()

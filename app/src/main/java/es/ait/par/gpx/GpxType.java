@@ -16,11 +16,11 @@ public class GpxType {
     private String creator;
     @Element(name = "metadata", required = false)
     private MetadataType metadata;
-    @ElementList(name = "wpt", inline = true, required = false)
+    @ElementList(name = "wpt", entry="wpt", inline = true, required = false)
     private List<WptType> wpt;
-    @ElementList(name = "rte", inline = true, required = false)
+    @ElementList(name = "rte", entry="rte", inline = true, required = false)
     private List<RteType> rte;
-    @ElementList(name = "trk", inline = true, required = false)
+    @ElementList(name = "trk", entry="trk", inline = true, required = false)
     private List<TrkType> trk;
     @Element(name = "extensions", required = false)
     private ExtensionsType extensions;
