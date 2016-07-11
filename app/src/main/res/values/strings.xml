@@ -20,4 +20,6 @@
     <string name="menu_gpx_delete">Delete</string>
     <string name="menu_gpx_send">Send</string>
     <string name="menu_gpx_view">View track</string>
+    <string name="menu_recorded_data">Previous Activities</string>
+    <string name="title_activity_previous_activities">PreviousActivities</string>
 </resources>

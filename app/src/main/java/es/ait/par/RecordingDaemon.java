@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import es.ait.par.db.ActivityDataBaseHelper;
 import es.ait.par.gpx.GPXRecorder;
 
 /**
@@ -128,6 +129,7 @@ public class RecordingDaemon extends Service implements LocationListener
                 timer.cancel();
                 NotificationManagerCompat.from( this ).cancel( NOTIFICATION_ID );
                 saveTrack();
+                saveRecordedData();
                 stopSelf();
                 break;
             }
@@ -286,6 +288,21 @@ public class RecordingDaemon extends Service implements LocationListener
         builder.setContentIntent(resultPendingIntent);
 
         return builder.build();
+    }
+
+    private void saveRecordedData()
+    {
+        Log.d(LOGCAT_TAG, "Saving activity data on BBDD.");
+        try
+        {
+            ActivityDataBaseHelper dbHelper = new ActivityDataBaseHelper(this, null);
+            dbHelper.saveRecordedData(data);
+            dbHelper.close();
+        }
+        catch ( Exception e)
+        {
+            Log.e( LOGCAT_TAG, "Error saving de activity data to the db.", e);
+        }
     }
 
     private void saveTrack()

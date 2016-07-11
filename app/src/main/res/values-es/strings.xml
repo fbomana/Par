@@ -21,4 +21,5 @@
     <string name="menu_gpx_delete">Borrar</string>
     <string name="menu_gpx_send">Enviar</string>
     <string name="menu_gpx_view">Ver Track</string>
+    <string name="menu_recorded_data">Actividades Previas</string>
 </resources>

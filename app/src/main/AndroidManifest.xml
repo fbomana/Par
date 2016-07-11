@@ -30,6 +30,14 @@
             android:label="@string/title_activity_gpxmanagment"
             android:theme="@style/AppTheme">
         </activity>
+        <activity
+            android:name=".AndroidDatabaseManager"
+            android:theme="@style/Theme.AppCompat.Light"/>
+        <activity
+            android:name=".PreviousActivities"
+            android:label="@string/title_activity_previous_activities"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

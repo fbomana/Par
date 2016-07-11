@@ -187,9 +187,17 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         switch ( item.getItemId())
         {
             case R.id.menu_gpx_files:
-                Intent intent = new Intent( this, GPXManagment.class);
-                startActivity( intent );
+            {
+                Intent intent = new Intent(this, GPXManagment.class);
+                startActivity(intent);
                 break;
+            }
+            case R.id.databasemanager:
+            {
+                Intent intent = new Intent(this, AndroidDatabaseManager.class);
+                startActivity(intent);
+                break;
+            }
         }
 
         return true;
