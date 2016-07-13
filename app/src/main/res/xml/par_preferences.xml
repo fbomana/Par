@@ -33,13 +33,13 @@
         <EditTextPreference
             android:enabled="true"
             android:defaultValue="3"
-            android:key="db_cleanup"
+            android:key="db_cleanup_month"
             android:title="@string/preferences_db_cleanup_month"
             android:inputType="numberDecimal"/>
         <EditTextPreference
             android:enabled="true"
             android:defaultValue="2"
-            android:key="db_cleanup"
+            android:key="db_cleanup_year"
             android:title="@string/preferences_db_cleanup_year"
             android:inputType="numberDecimal"/>
     </PreferenceCategory>
