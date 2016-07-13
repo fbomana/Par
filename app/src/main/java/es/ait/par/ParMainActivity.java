@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 
+import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -73,6 +74,8 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     {
         Log.d( LOGCAT_TAG, "onCreate"  );
         super.onCreate(paramBundle);
+
+        PreferenceManager.setDefaultValues( this, R.xml.par_preferences, false ); // Cargamos los valores por defecto en la primera ejecución.
 
         setContentView(R.layout.activity_par_main);
 
@@ -189,6 +192,18 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
             case R.id.menu_gpx_files:
             {
                 Intent intent = new Intent(this, GPXManagment.class);
+                startActivity(intent);
+                break;
+            }
+            case R.id.menu_recorded_data:
+            {
+                Intent intent = new Intent(this, PreviousActivities.class);
+                startActivity(intent);
+                break;
+            }
+            case R.id.menu_preferences:
+            {
+                Intent intent = new Intent(this, PreferencesScreen.class);
                 startActivity(intent);
                 break;
             }

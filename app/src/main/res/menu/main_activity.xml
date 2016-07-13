@@ -7,6 +7,9 @@
     <item android:id="@+id/menu_recorded_data"
           android:title="@string/menu_recorded_data"
           app:showAsAction="withText"/>
+    <item android:id="@+id/menu_preferences"
+          android:title="@string/menu_preferences"
+          app:showAsAction="withText"/>
     <item android:id="@+id/databasemanager"
           android:title="databasemanager"
           app:showAsAction="withText"/>

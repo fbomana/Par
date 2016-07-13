@@ -21,5 +21,18 @@
     <string name="menu_gpx_send">Send</string>
     <string name="menu_gpx_view">View track</string>
     <string name="menu_recorded_data">Previous Activities</string>
-    <string name="title_activity_previous_activities">PreviousActivities</string>
+    <string name="title_activity_previous_activities">Activity History</string>
+    <string name="preferences_weight_title">Weight</string>
+    <string name="preferences_weight_summary">Your Weight in Kg. The calories burned are calculated using this value, so the more acurate the weight the more acurate the calories burned value.</string>
+    <string name="preferences_gpx_category_title">GPX Track Recording</string>
+    <string name="preferences_gpx_category_summary">Enables saving the activity track in a gpx file. This may use too much space in your device memory if kept uncheck.</string>
+    <string name="preferences_gpx_save">Save tracks</string>
+    <string name="preferences_gpx_cleanup">Delete tracks older than ( days )</string>
+    <string name="preferences_db_title">Activity history</string>
+    <string name="preferences_db_summary">PAR can save your activities in an internal database so you can check your progress. This can potentially occupy a big chunck of your device memory.</string>
+    <string name="preferences_db_save">Save activities</string>
+    <string name="preferences_db_cleanup_month">Monthly resume after ( montha )</string>
+    <string name="preferences_db_cleanup_year">Anual resume after ( years )</string>
+    <string name="title_activity_preferences">Preferences</string>
+    <string name="menu_preferences">Preferences</string>
 </resources>
