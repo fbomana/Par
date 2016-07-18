@@ -89,7 +89,14 @@ public class RecordingDaemon extends Service implements LocationListener
             case ACTION_START:
             {
                 data.reset();
-                this.weight = PreferenceManager.getDefaultSharedPreferences( this ).getFloat( PreferencesScreen.KEY_WEIGHT, 80 );
+                if (  PreferenceManager.getDefaultSharedPreferences( this ) != null )
+                {
+                    this.weight = new Double ( PreferenceManager.getDefaultSharedPreferences(this).getString(PreferencesScreen.KEY_WEIGHT, "80"));
+                }
+                else
+                {
+                    Log.e( LOGCAT_TAG, "PreferenceManager.getDefaultSharedPreferences( this ) devuelve null");
+                }
                 try
                 {
                     GPXRecorder.getInstance(data.getActivity()).newTrack();

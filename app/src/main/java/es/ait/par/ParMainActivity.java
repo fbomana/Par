@@ -77,6 +77,21 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
         PreferenceManager.setDefaultValues( this, R.xml.par_preferences, false ); // Cargamos los valores por defecto en la primera ejecución.
 
+        try
+        {
+            if (PreferenceManager.getDefaultSharedPreferences(this) != null)
+            {
+                this.weight = new Double( PreferenceManager.getDefaultSharedPreferences(this).getString(PreferencesScreen.KEY_WEIGHT, "80"));
+            } else
+            {
+                Log.e(LOGCAT_TAG, "PreferenceManager.getDefaultSharedPreferences( this ) devuelve null");
+            }
+        }
+        catch ( Exception e )
+        {
+            Log.e(LOGCAT_TAG, "Error al leer las preferencias", e );
+        }
+
         setContentView(R.layout.activity_par_main);
 
         startButton = ((Button) findViewById(R.id.startButton));
