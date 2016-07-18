@@ -11,15 +11,18 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import es.ait.par.Activity;
 import es.ait.par.RecordedData;
+import es.ait.par.history.HistoryAnnotation;
 
 /**
  * Created by aitkiar on 30/06/16.
  */
 public class ActivityDataBaseHelper extends SQLiteOpenHelper
 {
-        private static final String dbName = "DBActivities";
+    private static final String dbName = "DBActivities";
     private static final int dbVersion = 1;
 
     public ActivityDataBaseHelper(Context context, SQLiteDatabase.CursorFactory factory )
@@ -55,12 +58,74 @@ public class ActivityDataBaseHelper extends SQLiteOpenHelper
     public void saveRecordedData( RecordedData data )
     {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("insert into activities ( activity_date, activity_name, activity_distance, " +
-            "activity_time, activity_calories ) values ( ?, ?, ?, ?, ? )",
-            new Object[]{ System.currentTimeMillis(), data.getActivity().getName(),data.getDistance(),
-            data.getTimeSeconds(), data.getCalories() });
+        try
+        {
+            db.execSQL("insert into activities ( activity_date, activity_name, activity_distance, " +
+                            "activity_time, activity_calories ) values ( ?, ?, ?, ?, ? )",
+                    new Object[]{System.currentTimeMillis(), data.getActivity().getName(), data.getDistance(),
+                            data.getTimeSeconds(), data.getCalories()});
+        }
+        finally
+        {
+            if ( db != null )
+            {
+                db.close();
+            }
+        }
     }
 
+    public List<HistoryAnnotation> getHistory(String activity  )
+    {
+        SQLiteDatabase db = null;
+        Cursor c = null;
+        String args[] = null;
+        String sql = "select activity_date, activity_name, activity_distance, activity_time, activity_calories, activity_resume from activities";
+        if ( activity != null )
+        {
+            sql += " where activity_name = ?";
+            args = new String[1];
+            args[0] = activity;
+        }
+        sql += " order by activity_date desc ";
+
+        try
+        {
+            db = getWritableDatabase();
+            c = db.rawQuery(sql, args);
+            List<HistoryAnnotation> result = new ArrayList<>();
+            while (c.moveToNext())
+            {
+                HistoryAnnotation annotation = new HistoryAnnotation();
+                annotation.setCalories(c.getDouble(4));
+                annotation.setDate(new Date(c.getLong(0)));
+                annotation.setDistance(c.getDouble(2));
+                annotation.setName(c.getString(1));
+                annotation.setResume(c.getInt(5) == 1);
+                annotation.setTime(c.getDouble(3));
+                result.add(annotation);
+            }
+            return result;
+        }
+        finally
+        {
+            if ( c != null )
+            {
+                c.close();
+            }
+            if ( db != null )
+            {
+                db.close();
+            }
+        }
+
+
+    }
+
+    /**
+     * method for running arbitrary sql querys in app depuration.
+     * @param Query
+     * @return
+     */
     public ArrayList<Cursor> getData(String Query){
         //get writable database
         SQLiteDatabase sqlDB = this.getWritableDatabase();

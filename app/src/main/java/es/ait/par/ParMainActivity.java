@@ -24,6 +24,8 @@ import android.widget.Toast;
 
 import java.text.DecimalFormat;
 
+import es.ait.par.history.HistoryActivity;
+
 
 public class ParMainActivity extends AppCompatActivity implements   AdapterView.OnItemSelectedListener,
                                                                     View.OnClickListener,
@@ -33,9 +35,6 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
     // Constants
     private final String SAVE_SELECTED_ACTIVITY = "SAVE_SELECTED_ACTIVITY";
     private final String SAVE_STATUS = "SAVE_STATUS";
-
-    private final String LOGCAT_TAG="[PAR]";
-
 
     private int GPS_INTERVAL = 5000;
     private int GPS_MINIMUN_DISTANCE = 3;
@@ -50,29 +49,18 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     // Data
 
-    private Activity[] activities = new Activity[] {
-            new Activity( R.string.activityEmpty, "Empty", "empty", null, null ),
-            new Activity( R.string.activityCycling, "cycling", "cycling", new double[] { 16, 19, 22.5, 24, 30, 32.2 }, new double[]{4, 6, 8, 10, 12, 16 }),
-            new Activity( R.string.activityRunning, "running", "running", new double[] {8.4, 9.6, 10.8, 11.3, 12.1, 12.9, 13.8, 14.5, 16.1, 17.5}, new double[]{9.0, 10.0, 11.0, 11.5, 12.5, 13.5, 14.0, 15.0, 16.0, 18.0}),
-            new Activity( R.string.activityWalking, "walking", "walking", new double[] {4.5, 5.3, 6.4}, new double[]{ 3.3, 3.8, 5})
-    };
-
     private double weight = 98;
 
     private RecordedData data;
 
     private Activity selectedActivity;
 
-    private DecimalFormat speedAndDistanceFormat = new DecimalFormat("###.##");
-    private DecimalFormat caloriesFormat = new DecimalFormat("######");
-    private DecimalFormat twoDigitsFormat = new DecimalFormat("00");
-
     //
     // Activity Lifecycle methods
     //
     public void onCreate(Bundle paramBundle)
     {
-        Log.d( LOGCAT_TAG, "onCreate"  );
+        Log.d( Utility.LOGCAT_TAG, "onCreate"  );
         super.onCreate(paramBundle);
 
         PreferenceManager.setDefaultValues( this, R.xml.par_preferences, false ); // Cargamos los valores por defecto en la primera ejecución.
@@ -81,15 +69,15 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         {
             if (PreferenceManager.getDefaultSharedPreferences(this) != null)
             {
-                this.weight = new Double( PreferenceManager.getDefaultSharedPreferences(this).getString(PreferencesScreen.KEY_WEIGHT, "80"));
+                this.weight = Double.valueOf( PreferenceManager.getDefaultSharedPreferences(this).getString(PreferencesScreen.KEY_WEIGHT, "80"));
             } else
             {
-                Log.e(LOGCAT_TAG, "PreferenceManager.getDefaultSharedPreferences( this ) devuelve null");
+                Log.e(Utility.LOGCAT_TAG, "PreferenceManager.getDefaultSharedPreferences( this ) devuelve null");
             }
         }
         catch ( Exception e )
         {
-            Log.e(LOGCAT_TAG, "Error al leer las preferencias", e );
+            Log.e(Utility.LOGCAT_TAG, "Error al leer las preferencias", e );
         }
 
         setContentView(R.layout.activity_par_main);
@@ -111,7 +99,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         stopButton.setOnClickListener(this);
 
         this.activitiesSprinner = ((Spinner) findViewById(R.id.activitySelector));
-        this.activitiesSprinner.setAdapter(new ActivityAdapter(this, R.layout.activity_row_layout, this.activities));
+        this.activitiesSprinner.setAdapter(new ActivityAdapter(this, R.layout.activity_row_layout, Utility.getActivities()));
         this.activitiesSprinner.setOnItemSelectedListener(this);
 
         data = RecordedData.getInstance();
@@ -120,7 +108,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         {
             selectedActivity = data.getActivity();
             int i = 0;
-            while ( !activities[i].getName().equals( data.getActivity().getName()))
+            while ( !Utility.getActivities()[i].getName().equals( data.getActivity().getName()))
             {
                 i++;
             }
@@ -212,7 +200,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
             }
             case R.id.menu_recorded_data:
             {
-                Intent intent = new Intent(this, PreviousActivities.class);
+                Intent intent = new Intent(this, HistoryActivity.class);
                 startActivity(intent);
                 break;
             }
@@ -256,12 +244,12 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
             startButton.setEnabled( false );
             startButton.setClickable( false );
         }
-        selectedActivity = activities[position];
+        selectedActivity = Utility.getActivities()[position];
         if ( data.getStatus() == RecordedData.STATUS_NOT_RECORDING )
         {
             data.setActivity( selectedActivity );
         }
-        Log.d( LOGCAT_TAG, "Activity selected: " + selectedActivity.getName() );
+        Log.d( Utility.LOGCAT_TAG, "Activity selected: " + selectedActivity.getName() );
     }
 
 
@@ -276,19 +264,19 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
         {
             case R.id.startButton:
             {
-                Log.d( LOGCAT_TAG, "Start Button clicked" );
+                Log.d( Utility.LOGCAT_TAG, "Start Button clicked" );
                 startRecording();
                 break;
             }
             case R.id.stopButton:
             {
-                Log.d( LOGCAT_TAG, "Stop Button clicked" );
+                Log.d( Utility.LOGCAT_TAG, "Stop Button clicked" );
                 stopRecording();
                 break;
             }
             case R.id.pauseButton:
             {
-                Log.d( LOGCAT_TAG, "Pause Button clicked" );
+                Log.d( Utility.LOGCAT_TAG, "Pause Button clicked" );
                 if ( data.getStatus() == RecordedData.STATUS_RECORDING )
                 {
                     clickPauseButton();
@@ -317,11 +305,11 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     private void sendMessageToRecordingService ( String message )
     {
-        Log.d( LOGCAT_TAG, "Sending intent to RecordingDaemon: " + message );
+        Log.d( Utility.LOGCAT_TAG, "Sending intent to RecordingDaemon: " + message );
         Intent serviceIntent = new Intent( this, RecordingDaemon.class );
         serviceIntent.setAction( message );
         startService( serviceIntent );
-        Log.d( LOGCAT_TAG, "Message sent" );
+        Log.d( Utility.LOGCAT_TAG, "Message sent" );
     }
 
     /**
@@ -329,7 +317,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
      */
     private void startRecording()
     {
-        Log.d( LOGCAT_TAG, "Start Recording" );
+        Log.d( Utility.LOGCAT_TAG, "Start Recording" );
         data.setActivity( selectedActivity );
 
         sendMessageToRecordingService( RecordingDaemon.ACTION_START );
@@ -357,7 +345,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     private void stopRecording()
     {
-        Log.d( LOGCAT_TAG, "Stop Recording" );
+        Log.d( Utility.LOGCAT_TAG, "Stop Recording" );
         sendMessageToRecordingService( RecordingDaemon.ACTION_STOP );
         activitiesSprinner.setEnabled( true );
 
@@ -373,20 +361,20 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     private void updateGUIValues()
     {
-        Log.d( LOGCAT_TAG, "Updating GUI" );
-        ((TextView) findViewById( R.id.distanceValue )).setText( speedAndDistanceFormat.format( data.getDistance() / 1000 ));
-        ((TextView) findViewById( R.id.speedValue )).setText( speedAndDistanceFormat.format( data.getActualSpeed() * 3.6 ));
+        Log.d( Utility.LOGCAT_TAG, "Updating GUI" );
+        ((TextView) findViewById( R.id.distanceValue )).setText( Utility.formatSpeedAndDistance( data.getDistance() / 1000 ));
+        ((TextView) findViewById( R.id.speedValue )).setText( Utility.formatSpeedAndDistance( data.getActualSpeed() * 3.6 ));
         if ( data.getTimeSeconds() > 0 )
         {
-            ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( ( data.getDistance() / data.getTimeSeconds() ) * 3.6 ));
+            ((TextView) findViewById( R.id.averageSpeedValue )).setText( Utility.formatSpeedAndDistance( ( data.getDistance() / data.getTimeSeconds() ) * 3.6 ));
         }
         else
         {
-            ((TextView) findViewById( R.id.averageSpeedValue )).setText( speedAndDistanceFormat.format( 0 ));
+            ((TextView) findViewById( R.id.averageSpeedValue )).setText( Utility.formatSpeedAndDistance( 0.0 ));
         }
-        ((TextView) findViewById( R.id.timeValue )).setText( twoDigitsFormat.format( data.getTimeSeconds() / 3600 ) + ":" + twoDigitsFormat.format((data.getTimeSeconds() % 3600)/ 60 ) + ":" + twoDigitsFormat.format((data.getTimeSeconds() % 3600)% 60 ));
-        ((TextView) findViewById( R.id.caloriesValue )).setText( caloriesFormat.format( data.getCalories() ));
-        ((TextView) findViewById( R.id.accuracyValue )).setText( speedAndDistanceFormat.format( data.getActualAccuracy() ));
+        ((TextView) findViewById( R.id.timeValue )).setText( Utility.formatTime( data.getTimeSeconds()));
+        ((TextView) findViewById( R.id.caloriesValue )).setText( Utility.formatCalories( data.getCalories() ));
+        ((TextView) findViewById( R.id.accuracyValue )).setText( Utility.formatSpeedAndDistance( data.getActualAccuracy() ));
     }
 
     private void clickPauseButton()
@@ -404,7 +392,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     @Override
     public void onDataChanged() {
-        Log.d( LOGCAT_TAG, "Data changed event listenned" );
+        Log.d( Utility.LOGCAT_TAG, "Data changed event listenned" );
         runOnUiThread( new Runnable(){
             public void run() {
                 updateGUIValues();
@@ -414,7 +402,7 @@ public class ParMainActivity extends AppCompatActivity implements   AdapterView.
 
     public void onStatusChanged()
     {
-        Log.d( LOGCAT_TAG, "GPS Status changed to :" + data.getStatus() );
+        Log.d( Utility.LOGCAT_TAG, "GPS Status changed to :" + data.getStatus() );
         runOnUiThread( new Runnable() {
             public void run()
             {

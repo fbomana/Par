@@ -27,7 +27,6 @@ import java.util.List;
  */
 public class GPXAdapter extends ArrayAdapter
 {
-    private static final String LOGCAT_TAG="[PAR]";
 
     public static GPXAdapter getInstance( Context context, int resource )
     {
@@ -56,7 +55,7 @@ public class GPXAdapter extends ArrayAdapter
         LayoutInflater inflater = ((AppCompatActivity) getContext()).getLayoutInflater();
         View row = inflater.inflate(R.layout.gpx_row, parent, false);
         ((AppCompatTextView)row.findViewById( R.id.gpxRowActivity )).setText( track.getActivity());
-        ((AppCompatTextView)row.findViewById( R.id.gpxRowDate )).setText( new SimpleDateFormat( "dd/MM/yyyy HH:mm").format( track.getDate()));
+        ((AppCompatTextView)row.findViewById( R.id.gpxRowDate )).setText( Utility.formatDate( track.getDate()));
 
         return row;
     }
@@ -83,7 +82,7 @@ public class GPXAdapter extends ArrayAdapter
                                 tracks.add(new GPXTrack(file));
                             } catch (ParseException e)
                             {
-                                Log.d(LOGCAT_TAG, "Error parsing file:" + file.getAbsolutePath());
+                                Log.d(Utility.LOGCAT_TAG, "Error parsing file:" + file.getAbsolutePath());
                             }
                         }
                     }

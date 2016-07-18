@@ -14,7 +14,6 @@ import android.widget.TextView;
 
 /**
  * Adapter class for show the customized activities spinner
- * Created by aitkiar on 6/05/16.
  */
 public class ActivityAdapter extends ArrayAdapter
 {
@@ -36,28 +35,24 @@ public class ActivityAdapter extends ArrayAdapter
         return getCustomView(position, convertView, parent);
     }
 
+    /**
+     *  Gets the View for the activity with index position on the activities array.
+     *
+     * @param position
+     * @param convertView
+     * @param parent
+     * @return
+     */
     public View getCustomView(int position, View convertView, ViewGroup parent)
     {
         Activity activity = activities[position];
-        LayoutInflater inflater = ((AppCompatActivity) getContext()).getLayoutInflater();
+        LayoutInflater inflater = ((android.app.Activity) getContext()).getLayoutInflater();
         View row = inflater.inflate(R.layout.activity_row_layout, parent, false);
         ImageView image = (ImageView)row.findViewById(R.id.activityRowImage );
-        image.setImageDrawable( getImage( activity ));
+        image.setImageDrawable( Utility.getImage( getContext(), activity ));
         TextView text = (TextView)row.findViewById(R.id.activityRowText );
         text.setText( row.getResources().getString( activity.getId()));
         return row;
     }
 
-    /**
-     * Gets a drawable from the icon method.
-     * @param activity
-     * @return
-     */
-    private Drawable getImage(Activity activity )
-    {
-        Resources resources = getContext().getResources();
-        final int resourceId = resources.getIdentifier( activity.getIcon(), "drawable",
-                getContext().getPackageName());
-        return  ResourcesCompat.getDrawable( resources, resourceId, null );
-    }
 }

@@ -35,4 +35,5 @@
     <string name="preferences_db_cleanup_year">Anual resume after ( years )</string>
     <string name="title_activity_preferences">Preferences</string>
     <string name="menu_preferences">Preferences</string>
+    <string name="date">Date</string>
 </resources>

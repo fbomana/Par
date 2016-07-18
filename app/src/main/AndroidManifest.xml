@@ -34,7 +34,7 @@
             android:name=".AndroidDatabaseManager"
             android:theme="@style/Theme.AppCompat.Light"/>
         <activity
-            android:name=".PreviousActivities"
+            android:name=".history.HistoryActivity"
             android:label="@string/title_activity_previous_activities"
             android:theme="@style/AppTheme">
         </activity>

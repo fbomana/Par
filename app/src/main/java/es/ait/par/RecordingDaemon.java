@@ -48,7 +48,6 @@ public class RecordingDaemon extends Service implements LocationListener
     private final int GPS_MINIMUN_DISTANCE = 0;
     private final int ACCURACY_LIMIT = 20;
 
-    private final String LOGCAT_TAG="[PAR]";
     LocationManager locationManager = null;
     
     // Location save.
@@ -78,10 +77,10 @@ public class RecordingDaemon extends Service implements LocationListener
     @Override
     public int onStartCommand( Intent intent, int flags, int startId )
     {
-        Log.d( LOGCAT_TAG, "OnStartCommand. Action: " + intent.getAction());
+        Log.d( Utility.LOGCAT_TAG, "OnStartCommand. Action: " + intent.getAction());
         if ( locationManager == null )
         {
-            Log.d( LOGCAT_TAG, "Null locationManager. Getting new one");
+            Log.d( Utility.LOGCAT_TAG, "Null locationManager. Getting new one");
             locationManager = (LocationManager) this.getSystemService( Context.LOCATION_SERVICE );
         }
         switch ( intent.getAction() )
@@ -95,7 +94,7 @@ public class RecordingDaemon extends Service implements LocationListener
                 }
                 else
                 {
-                    Log.e( LOGCAT_TAG, "PreferenceManager.getDefaultSharedPreferences( this ) devuelve null");
+                    Log.e( Utility.LOGCAT_TAG, "PreferenceManager.getDefaultSharedPreferences( this ) devuelve null");
                 }
                 try
                 {
@@ -103,13 +102,13 @@ public class RecordingDaemon extends Service implements LocationListener
                 }
                 catch ( Exception e )
                 {
-                    Log.d( LOGCAT_TAG, "Error al obtener el GPXRecorder", e );
+                    Log.d( Utility.LOGCAT_TAG, "Error al obtener el GPXRecorder", e );
                     Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_LONG).show();
                 }
 
                 if ( locationManager != null )
                 {
-                    Log.d( LOGCAT_TAG, "Requesting location updates");
+                    Log.d( Utility.LOGCAT_TAG, "Requesting location updates");
                     locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, GPS_INTERVAL, GPS_MINIMUN_DISTANCE, this);
                     data.setStatus( RecordedData.STATUS_WAITING_FIRST_LOCATION );
                     startForeground( NOTIFICATION_ID, getNotification() );
@@ -131,7 +130,7 @@ public class RecordingDaemon extends Service implements LocationListener
             {
                 if ( locationManager != null )
                 {
-                    Log.d( LOGCAT_TAG, "Requesting end of location updates");
+                    Log.d( Utility.LOGCAT_TAG, "Requesting end of location updates");
                     locationManager.removeUpdates( this );
                 }
                 data.setStatus( RecordedData.STATUS_NOT_RECORDING );
@@ -185,12 +184,12 @@ public class RecordingDaemon extends Service implements LocationListener
     @Override
     public void onLocationChanged(Location location)
     {
-        Log.d( LOGCAT_TAG, "Location Changed Event recived" );
-        Log.d( LOGCAT_TAG, "["+ location.getProvider() + "] lat:" + location.getLatitude() + " Long: " + location.getLongitude() + " Acc:" + location.getAccuracy());
+        Log.d( Utility.LOGCAT_TAG, "Location Changed Event recived" );
+        Log.d( Utility.LOGCAT_TAG, "["+ location.getProvider() + "] lat:" + location.getLatitude() + " Long: " + location.getLongitude() + " Acc:" + location.getAccuracy());
         long actualTime = System.currentTimeMillis();
         if ( bestLocation == null )
         {
-            Log.d( LOGCAT_TAG, "Best location null" );
+            Log.d( Utility.LOGCAT_TAG, "Best location null" );
             bestLocation = location;
             bestLocationTime = actualTime;
             if ( lastSavedLocation == null )
@@ -204,7 +203,7 @@ public class RecordingDaemon extends Service implements LocationListener
             if ( actualTime - lastSavedLocationTime >= 10000  ||
                 bestLocation.distanceTo( location ) > bestLocation.getAccuracy() + location.getAccuracy()  )
             {
-                Log.d( LOGCAT_TAG, "Ten secconds or distance trigger" );
+                Log.d( Utility.LOGCAT_TAG, "Ten secconds or distance trigger" );
                 saveBestLocation();
                 bestLocationTime = actualTime;
                 bestLocation = location;
@@ -219,10 +218,10 @@ public class RecordingDaemon extends Service implements LocationListener
 
     private void saveBestLocation()
     {
-        Log.d( LOGCAT_TAG, "Save best location" );
+        Log.d( Utility.LOGCAT_TAG, "Save best location" );
         if (lastSavedLocation != null )
         {
-            Log.d( LOGCAT_TAG, "lastSavedLocation != null " );
+            Log.d( Utility.LOGCAT_TAG, "lastSavedLocation != null " );
             double partialDistance = lastSavedLocation.distanceTo(bestLocation);
             long partialTime = (bestLocationTime - lastSavedLocationTime) / 1000;
             double speed = partialDistance / partialTime;
@@ -238,7 +237,7 @@ public class RecordingDaemon extends Service implements LocationListener
         }
         catch ( Exception e )
         {
-            Log.d( LOGCAT_TAG, "Error al obtener el GPXRecorder", e );
+            Log.d( Utility.LOGCAT_TAG, "Error al obtener el GPXRecorder", e );
             Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         lastSavedLocation = bestLocation;
@@ -253,7 +252,7 @@ public class RecordingDaemon extends Service implements LocationListener
     @Override
     public void onProviderEnabled(String provider)
     {
-        Log.d( LOGCAT_TAG, "Location provider " + provider + " enabled" );
+        Log.d( Utility.LOGCAT_TAG, "Location provider " + provider + " enabled" );
         if ( provider.equals( LocationManager.GPS_PROVIDER ) )
         {
             gpsDisabled = false;
@@ -263,7 +262,7 @@ public class RecordingDaemon extends Service implements LocationListener
     @Override
     public void onProviderDisabled(String provider)
     {
-        Log.d( LOGCAT_TAG, "Location provider " + provider + " disabled" );
+        Log.d( Utility.LOGCAT_TAG, "Location provider " + provider + " disabled" );
         if ( provider.equals( LocationManager.GPS_PROVIDER ) )
         {
             gpsDisabled = false;
@@ -301,7 +300,7 @@ public class RecordingDaemon extends Service implements LocationListener
 
     private void saveRecordedData()
     {
-        Log.d(LOGCAT_TAG, "Saving activity data on BBDD.");
+        Log.d(Utility.LOGCAT_TAG, "Saving activity data on BBDD.");
         try
         {
             ActivityDataBaseHelper dbHelper = new ActivityDataBaseHelper(this, null);
@@ -310,7 +309,7 @@ public class RecordingDaemon extends Service implements LocationListener
         }
         catch ( Exception e)
         {
-            Log.e( LOGCAT_TAG, "Error saving de activity data to the db.", e);
+            Log.e( Utility.LOGCAT_TAG, "Error saving de activity data to the db.", e);
         }
     }
 
@@ -318,9 +317,9 @@ public class RecordingDaemon extends Service implements LocationListener
     {
         if ( PreferenceManager.getDefaultSharedPreferences( this ).getBoolean(PreferencesScreen.KEY_GPX_SAVE, true ))
         {
-            Log.d(LOGCAT_TAG, "Saving track file");
+            Log.d(Utility.LOGCAT_TAG, "Saving track file");
             File[] directories = ContextCompat.getExternalFilesDirs(this, "GPX");
-            Log.d(LOGCAT_TAG, "Encontrados " + directories.length + " directorios ");
+            Log.d(Utility.LOGCAT_TAG, "Encontrados " + directories.length + " directorios ");
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH_mm_");
             boolean written = false;
             for (int i = directories.length - 1; i >= 0; i--)
@@ -329,24 +328,24 @@ public class RecordingDaemon extends Service implements LocationListener
                 {
                     try
                     {
-                        Log.d(LOGCAT_TAG, "Intentando grabar en directorio: " + directories[i].getAbsolutePath());
+                        Log.d(Utility.LOGCAT_TAG, "Intentando grabar en directorio: " + directories[i].getAbsolutePath());
                         if (!directories[i].exists())
                         {
                             directories[i].mkdir();
                         }
-                        Log.d(LOGCAT_TAG, "\t\t Directorio creado" + directories[i].getAbsolutePath());
+                        Log.d(Utility.LOGCAT_TAG, "\t\t Directorio creado" + directories[i].getAbsolutePath());
                         File saveFile = new File(directories[i], sdf.format(new java.util.Date()) + data.getActivity().getName() + ".gpx");
                         GPXRecorder.getInstance(data.getActivity()).serialize(saveFile);
-                        Log.d(LOGCAT_TAG, "\t\t Fichero salvado: " + saveFile);
+                        Log.d(Utility.LOGCAT_TAG, "\t\t Fichero salvado: " + saveFile);
                         written = true;
                         break;
                     } catch (IOException e)
                     {
-                        Log.e(LOGCAT_TAG, "\t\t Error Al guardar: ", e);
+                        Log.e(Utility.LOGCAT_TAG, "\t\t Error Al guardar: ", e);
                         continue;
                     } catch (Exception e)
                     {
-                        Log.e(LOGCAT_TAG, "\t\t Error Al guardar: ", e);
+                        Log.e(Utility.LOGCAT_TAG, "\t\t Error Al guardar: ", e);
                         Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         break;
                     }
@@ -365,17 +364,17 @@ public class RecordingDaemon extends Service implements LocationListener
                         gpxFolder = folder;
                     }
 
-                    Log.d(LOGCAT_TAG, "Intentando grabar en directorio Interno: " + gpxFolder);
+                    Log.d(Utility.LOGCAT_TAG, "Intentando grabar en directorio Interno: " + gpxFolder);
                     File saveFile = new File(gpxFolder, sdf.format(new java.util.Date()) + data.getActivity().getName() + ".gpx");
                     GPXRecorder.getInstance(data.getActivity()).serialize(saveFile);
-                    Log.d(LOGCAT_TAG, "Saved: " + saveFile);
+                    Log.d(Utility.LOGCAT_TAG, "Saved: " + saveFile);
                 } catch (Exception e)
                 {
-                    Log.d(LOGCAT_TAG, "\t\t Error Al guardar: ", e);
+                    Log.d(Utility.LOGCAT_TAG, "\t\t Error Al guardar: ", e);
                     Toast.makeText(RecordingDaemon.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 } catch (Throwable e)
                 {
-                    Log.e(LOGCAT_TAG, "Error inesperado al grabar", e);
+                    Log.e(Utility.LOGCAT_TAG, "Error inesperado al grabar", e);
                     throw e;
                 }
             }

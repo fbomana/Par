@@ -9,6 +9,7 @@ import java.io.Serializable;
  */
 public class Activity implements Serializable
 {
+
     private int id;
     private String icon;
     private String name;
@@ -101,4 +102,6 @@ public class Activity implements Serializable
 
         return bestMet * weight * MET_CALORIES_COEFICIENT *  seconds / 60;
     }
+
+
 }

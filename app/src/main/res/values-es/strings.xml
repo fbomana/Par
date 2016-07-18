@@ -36,4 +36,5 @@
     <string name="title_activity_preferences">Preferencias</string>
     <string name="title_activity_previous_activities">Historico de Actividades</string>
     <string name="menu_preferences">Preferencias</string>
+    <string name="date">Fecha</string>
 </resources>

@@ -22,9 +22,6 @@ import java.util.List;
 
 public class GPXManagment extends AppCompatActivity implements AdapterView.OnItemLongClickListener, AdapterView.OnItemClickListener
 {
-
-    private final String LOGCAT_TAG="[PAR]";
-
     private ListViewCompat trackList;
     private GPXAdapter adapter;
     private boolean selectionMode = false;
@@ -124,7 +121,7 @@ public class GPXManagment extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l)
     {
-        Log.d( LOGCAT_TAG, "onItemLongClick");
+        Log.d( Utility.LOGCAT_TAG, "onItemLongClick");
         if ( !selectionMode )
         {
             selectionMode = true;
@@ -142,7 +139,7 @@ public class GPXManagment extends AppCompatActivity implements AdapterView.OnIte
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
     {
 
-        Log.d( LOGCAT_TAG, "onItemClick");
+        Log.d( Utility.LOGCAT_TAG, "onItemClick");
         if ( selectionMode )
         {
             GPXAdapter.GPXTrack track = (GPXAdapter.GPXTrack) adapterView.getItemAtPosition( i );
