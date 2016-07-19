@@ -47,7 +47,7 @@ public class HistoryDetailFragment extends Fragment
         avgSpeed = ( TextView ) view.findViewById( R.id.historyDetailAvgSpeed );
         caloriesText = ( TextView ) view.findViewById( R.id.historyDetailCaloriesText );
         calories = ( TextView ) view.findViewById( R.id.historyDetailCalories );
-        if ( getArguments().getSerializable( "annotation") != null )
+        if ( getArguments() != null && getArguments().getSerializable( "annotation") != null )
         {
             setHistoryAnnotation((HistoryAnnotation) getArguments().getSerializable( "annotation" ));
         }
@@ -77,7 +77,15 @@ public class HistoryDetailFragment extends Fragment
             time.setVisibility( View.VISIBLE );
 
             avgSpeedText.setVisibility( View.VISIBLE );
-            avgSpeed.setText( Utility.formatSpeedAndDistance( annotation.getDistance() * 3.6 / annotation.getTime()));
+            if ( annotation.getTime() != 0 )
+            {
+                avgSpeed.setText( Utility.formatSpeedAndDistance( annotation.getDistance() * 3.6 / annotation.getTime()) + " km/h");
+            }
+            else
+            {
+                avgSpeed.setText( Utility.formatSpeedAndDistance( 0 ) + " km/h");
+            }
+
             avgSpeed.setVisibility( View.VISIBLE );
 
             caloriesText.setVisibility( View.VISIBLE );;

@@ -88,6 +88,10 @@ public class HistoryActivity extends AppCompatActivity implements HistoryActivit
             ft.addToBackStack(null);
             ft.commit();
         }
+        else
+        {
+            detailFragment.setHistoryAnnotation( annotation );
+        }
     }
 
 }
