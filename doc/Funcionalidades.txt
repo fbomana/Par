@@ -1,0 +1,20 @@
+Actividades:
+
+Tabla:
+  - Fecha: se guarda al terminar: timestamp
+  - Actividad: id
+  - Distancia: metros.
+  - Tiempo: milisegundos.
+  - Calorias.
+  - Resumen: booleano sí/no
+
+  
+  ---> Resúmenes:
+  
+    Se suman por actividad y fecha: distancia, tiempo y calorias.
+    Se crean las nuevas actividades y se guardan con fecha del mes.
+  
+
+    ---> Anuales: se compacta aquello que tenga más de doce meses de antigüedad --> es decir en enero de 2016 se compacta todo lo que tenga fecha menor que enero de 2015.
+		  El proceso de compactación es opcional. Se puede lanzar de manera manual o automática.
+  

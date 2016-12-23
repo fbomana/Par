@@ -1,26 +1,35 @@
 package es.ait.par;
 
+import java.io.Serializable;
+
 /**
  * Class to englobe the activities supported by the application.
  *
  * Created by aitkiar on 6/05/16.
  */
-public class Activity
+public class Activity implements Serializable
 {
+
+    private int id;
     private String icon;
     private String name;
+
+    private final double MET_CALORIES_COEFICIENT = 0.0175;
 
     // gets the aproximated Met
     private double metSpeed[];
     private double met[];
 
-    public Activity ( String name, String icon, double metSpeed[], double met[] )
+    public Activity ( int id, String name, String icon, double metSpeed[], double met[] )
     {
+        this.id = id;
         this.name = name;
         this.icon = icon;
         this.metSpeed = metSpeed;
         this.met = met;
     }
+
+    public int getId() { return id; }
 
     public String getIcon()
     {
@@ -91,6 +100,8 @@ public class Activity
             }
         }
 
-        return bestMet * weight * seconds / 60;
+        return bestMet * weight * MET_CALORIES_COEFICIENT *  seconds / 60;
     }
+
+
 }

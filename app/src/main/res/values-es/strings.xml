@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PAR</string>
+    <string name="avgspeed">Velocidad Media</string>
+    <string name="calories">Calorias</string>
+    <string name="distance">Distancia</string>
+    <string name="pauseButton">Pausa</string>
+    <string name="resumeButton">Reanudar</string>
+    <string name="speed">Velocidad</string>
+    <string name="startButton">Comenzar</string>
+    <string name="stopButton">Parar</string>
+    <string name="time">Tiempo</string>
+    <string name="activityEmpty">Elige una actividad</string>
+    <string name="activityCycling">Bicicleta</string>
+    <string name="activityRunning">Correr</string>
+    <string name="activityWalking">Camninar</string>
+    <string name="accuracy">Precisión</string>
+    <string name="gpsDisabledToast">GPS desactivado. El GPS debe estar activado para poder grabar actividades.</string>
+    <string name="menu_gpx">gpx</string>
+    <string name="title_activity_gpxmanagment">PAR -  Gestion de tracks grabados</string>
+    <string name="menu_gpx_delete">Borrar</string>
+    <string name="menu_gpx_send">Enviar</string>
+    <string name="menu_gpx_view">Ver Track</string>
+    <string name="menu_recorded_data">Actividades Previas</string>
+    <string name="preferences_weight_title">Peso</string>
+    <string name="preferences_weight_summary">Su peso en Kg. Este valor se usa para calcular la estimación de las calorías quemadas. Cuando más preciso sea este valor más precisa será la estimación.</string>
+    <string name="preferences_gpx_category_title">GPX: Grabado de recorridos</string>
+    <string name="preferences_gpx_category_summary">Permite grabar el recorrido realizado durante la actividad como fichero GPX. Esto puede ocupar demasiada memoria en el dispositivo si no se eliminan los recorridos viejos periodicamente.</string>
+    <string name="preferences_gpx_save">Grabar recorridos</string>
+    <string name="preferences_gpx_cleanup">Borrar recorridos anteriores a ( dias )</string>
+    <string name="preferences_db_title">Histórico de actividades</string>
+    <string name="preferences_db_summary">PAR puede guardar las actividades realizadas en una base de datos interna para que puedas comprobar tus progresos. Esto puede ocupar demasiada memoria en su dispositivo.</string>
+    <string name="preferences_db_save">Grabar actividades</string>
+    <string name="preferences_db_cleanup_month">Crear resumen mensual después de ( meses )</string>
+    <string name="preferences_db_cleanup_year">Crear resumen anual después de ( años )</string>
+    <string name="title_activity_preferences">Preferencias</string>
+    <string name="title_activity_previous_activities">Historico de Actividades</string>
+    <string name="menu_preferences">Preferencias</string>
+    <string name="date">Fecha</string>
+</resources>
