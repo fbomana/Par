@@ -74,6 +74,27 @@ public class ActivityDataBaseHelper extends SQLiteOpenHelper
         }
     }
 
+    /**
+     * Deletes a record from the database.
+     *
+     * @param data
+     */
+    public void deleteRecordedData( HistoryAnnotation data )
+    {
+        SQLiteDatabase db = getWritableDatabase();
+        try
+        {
+            db.execSQL("delete from activities where activity_date = ?", new Object[]{data.getDate().getTime()});
+        }
+        finally
+        {
+            if ( db != null )
+            {
+                db.close();
+            }
+        }
+    }
+
     public List<HistoryAnnotation> getHistory(String activity  )
     {
         SQLiteDatabase db = null;
